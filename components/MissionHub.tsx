@@ -60,8 +60,8 @@ const MissionHub: React.FC<MissionHubProps> = ({ state, onStartStation }) => {
         {/* Instruction overlay if no node selected */}
         {!selectedNodeId && Object.keys(state.stationProgress).length === 0 && (
           <div className="absolute inset-x-0 top-10 flex justify-center z-40 pointer-events-none">
-            <div className="bg-[#ffb000] text-black text-[9px] font-bold px-3 py-1 uppercase tracking-widest animate-bounce shadow-lg">
-              Select an Active Node (Blinking) to Begin Investigation
+            <div className="bg-[#ffb000] text-black text-[9px] font-bold px-4 py-2 uppercase tracking-widest animate-bounce shadow-[0_0_20px_#ffb000] border border-black">
+              Select an Active Signal (Blinking) to Begin
             </div>
           </div>
         )}
@@ -76,19 +76,29 @@ const MissionHub: React.FC<MissionHubProps> = ({ state, onStartStation }) => {
             <button 
               key={id}
               onClick={() => { sfx.click(); setSelectedNodeId(id); }}
-              className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center transition-all ${isSelected ? 'z-30 scale-125' : 'z-20 opacity-80'}`}
+              className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center transition-all ${isSelected ? 'z-30 scale-125' : 'z-20'}`}
               style={{ left: `${s.x}%`, top: `${s.y}%` }}
             >
-              {/* Radar pulse for interactive, non-completed nodes */}
+              {/* Radar pulse for interactive, non-completed nodes - intensified for user clarity */}
               {isAvailable && !isComp && (
-                <div className="absolute inset-0 border border-[#ffb000] rounded-full animate-ping opacity-30"></div>
+                <div className="absolute inset-0 border-2 border-[#ffb000] rounded-full animate-ping opacity-60"></div>
+              )}
+              {isAvailable && !isComp && (
+                <div className="absolute inset-2 border border-[#ffb000] rounded-full animate-pulse opacity-40"></div>
               )}
               
-              <div className={`w-3 h-3 rotate-45 border-2 transition-colors duration-300 ${
-                isComp ? 'bg-green-500 border-green-400' : 
-                isSelected ? 'bg-white border-[#ffb000] shadow-[0_0_10px_#ffb000]' : 
-                'bg-amber-900/40 border-amber-600/60'
-              } ${isAvailable ? 'animate-pulse' : ''}`}></div>
+              <div className={`w-4 h-4 rotate-45 border-2 transition-all duration-300 ${
+                isComp ? 'bg-green-500 border-green-400 shadow-[0_0_10px_#22c55e]' : 
+                isSelected ? 'bg-white border-[#ffb000] shadow-[0_0_15px_#ffb000]' : 
+                'bg-amber-900/40 border-amber-600/60 shadow-[0_0_5px_rgba(217,119,6,0.2)]'
+              } ${isAvailable && !isComp ? 'animate-pulse bg-[#ffb000]/60' : ''}`}></div>
+              
+              {/* Tooltip for the node title (visible when selected) */}
+              {isSelected && (
+                <div className="absolute -top-6 whitespace-nowrap bg-[#ffb000] text-black px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-tighter">
+                  {s.title}
+                </div>
+              )}
             </button>
           );
         })}
@@ -109,7 +119,7 @@ const MissionHub: React.FC<MissionHubProps> = ({ state, onStartStation }) => {
                 onClick={() => handleStart(selectedNode.id)}
                 className="px-5 py-2.5 bg-[#ffb000] text-black font-bold uppercase text-[10px] tracking-tighter hover:bg-white active:scale-95 transition-all disabled:opacity-30 whitespace-nowrap"
               >
-                {isTraveling ? 'LINKING...' : !!state.stationProgress[selectedNode.id]?.completedAt ? 'SYNCED' : 'ENGAGE NODE'}
+                {isTraveling ? 'SYNCING...' : !!state.stationProgress[selectedNode.id]?.completedAt ? 'STABILIZED' : 'LINK NEURAL CORE'}
               </button>
             </div>
           )}
@@ -124,7 +134,7 @@ const MissionHub: React.FC<MissionHubProps> = ({ state, onStartStation }) => {
         </div>
         <div className="flex-1 overflow-y-auto p-4 terminal-scrollbar space-y-2.5 font-mono">
           {state.researchLog.length === 0 && (
-            <div className="text-[8px] opacity-20 uppercase animate-pulse">Waiting for data input...</div>
+            <div className="text-[8px] opacity-20 uppercase animate-pulse">Waiting for neural handshake...</div>
           )}
           {state.researchLog.map((log, i) => (
             <div key={i} className="text-[8px] leading-relaxed border-l-2 border-[#ffb000]/10 pl-3">
