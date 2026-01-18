@@ -9,9 +9,9 @@ export const UPGRADES = [
 ];
 
 export const PUZZLES: Puzzle[] = [
-  { id: 'p1', type: 'anagram', prompt: "UNSCRAMBLE: 'A-G-N-U-A-G-E-L'", solution: "language", reward: { fuel: 20 } },
-  { id: 'p2', type: 'pattern', prompt: "SEQUENCE: Sound -> Syllable -> Word -> ?", solution: "sentence", reward: { rations: 5 } },
-  { id: 'p3', type: 'match', prompt: "ANALOGY: Newspeak is to Control as Jargon is to ?", solution: "exclusion", reward: { xp: 200 } }
+  { id: 'p1', type: 'anagram', prompt: "UNSCRAMBLE: 'A-G-N-U-A-G-E-L'", solution: "language", reward: { fuel: 20, xp: 50 } },
+  { id: 'p2', type: 'pattern', prompt: "SEQUENCE: Sound -> Syllable -> Word -> ?", solution: "sentence", reward: { rations: 5, xp: 50 } },
+  { id: 'p3', type: 'match', prompt: "ANALOGY: Newspeak is to Control as Jargon is to ?", solution: "exclusion", reward: { xp: 200, integrity: 10 } }
 ];
 
 export const STATIONS: Record<StationId, Station> = {

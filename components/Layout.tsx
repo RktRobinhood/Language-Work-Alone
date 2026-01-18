@@ -53,9 +53,9 @@ const Layout: React.FC<LayoutProps> = ({ state, children, activeTab, onNav, isDo
           
           <div className="flex gap-4 items-center">
             <div className="text-right">
-              <p className="text-[8px] uppercase opacity-50">Integrity</p>
+              <p className="text-[8px] uppercase opacity-50">Mental Integrity</p>
               <div className="w-16 h-1 bg-black rounded-full overflow-hidden">
-                <div className={`h-full transition-all ${state.dataIntegrity < 40 ? 'bg-red-500' : 'bg-[#ffb000]'}`} style={{ width: `${state.dataIntegrity}%` }}></div>
+                <div className={`h-full transition-all ${state.integrity < 40 ? 'bg-red-500' : 'bg-[#ffb000]'}`} style={{ width: `${state.integrity}%` }}></div>
               </div>
             </div>
             <div className="text-right min-w-[70px]">

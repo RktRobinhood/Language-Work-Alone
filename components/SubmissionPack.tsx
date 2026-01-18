@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { GameState } from '../types';
+import { GameState, StationId } from '../types';
 import { STATIONS } from '../constants';
 
 interface SubmissionPackProps {
@@ -9,6 +9,8 @@ interface SubmissionPackProps {
 }
 
 const SubmissionPack: React.FC<SubmissionPackProps> = ({ state, onBack }) => {
+  const completedCount = Object.keys(state.stationProgress).filter(id => state.stationProgress[id].completedAt).length;
+
   return (
     <div className="flex flex-col gap-6 animate-in slide-in-from-bottom-10 duration-500 pb-20">
       <div className="glass-panel p-8 rounded-xl border-green-500/20 no-print">
@@ -24,10 +26,11 @@ const SubmissionPack: React.FC<SubmissionPackProps> = ({ state, onBack }) => {
 
         <div className="space-y-6 mb-8">
            <div className="bg-black/40 p-6 rounded-lg border border-white/5 font-mono text-xs space-y-2">
-              <div className="flex justify-between"><span>ENV_ID:</span> <span className="text-cyan-400">{state.seed}</span></div>
+              <div className="flex justify-between"><span>ENV_ID:</span> <span className="text-cyan-400">{state.seed.substring(0, 12)}</span></div>
               <div className="flex justify-between"><span>ENGAGEMENT:</span> <span className="text-cyan-400">{Math.floor(state.totalActiveTime / 60)}M</span></div>
               <div className="flex justify-between"><span>CLEARANCE:</span> <span className="text-cyan-400">LEVEL {state.clearanceLevel}</span></div>
-              <div className="flex justify-between"><span>INTEGRITY:</span> <span className="text-green-400">{state.dataIntegrity}%</span></div>
+              <div className="flex justify-between"><span>INTEGRITY:</span> <span className="text-green-400">{state.integrity}%</span></div>
+              <div className="flex justify-between"><span>NODES_SYNCED:</span> <span className="text-green-400">{completedCount}</span></div>
            </div>
         </div>
 
@@ -47,7 +50,7 @@ const SubmissionPack: React.FC<SubmissionPackProps> = ({ state, onBack }) => {
       </button>
 
       {/* PRINT LAYOUT */}
-      <div className="print-only p-12 text-slate-900 font-serif">
+      <div className="hidden print:block p-12 text-slate-900 font-serif bg-white">
         <div className="border-b-4 border-black pb-6 mb-10 flex justify-between items-end">
           <div>
             <h1 className="text-4xl font-bold uppercase tracking-tight">TOK Research Dossier</h1>
@@ -64,17 +67,19 @@ const SubmissionPack: React.FC<SubmissionPackProps> = ({ state, onBack }) => {
           <div className="grid grid-cols-2 gap-8 text-sm">
             <p><strong>Clearance:</strong> Level {state.clearanceLevel}</p>
             <p><strong>Total Engagement:</strong> {Math.floor(state.totalActiveTime / 60)} minutes</p>
-            <p><strong>Data Integrity:</strong> {state.dataIntegrity}%</p>
-            <p><strong>Archive Nodes:</strong> {state.currentStationIndex} stabilized</p>
+            <p><strong>Mental Integrity:</strong> {state.integrity}%</p>
+            <p><strong>Archive Nodes:</strong> {completedCount} stabilized</p>
           </div>
         </section>
 
         <section>
           <h2 className="text-xl font-bold mb-8 uppercase tracking-wider border-b-2 border-slate-200">Knowledge Synthesis</h2>
-          {state.route.map((id, index) => {
-            const progress = state.stationProgress[id];
-            if (!progress?.completedAt) return null;
-            const station = STATIONS[id];
+          {Object.entries(state.stationProgress).map(([id, progress], index) => {
+            // Fix: Cast progress to the specific type to resolve 'unknown' property errors when accessing completedAt and draft
+            const p = progress as { startTime: number; completedAt?: number; failedAttempts: number; draft?: string; };
+            if (!p?.completedAt) return null;
+            // Fix: Cast id to StationId to ensure type safety with STATIONS lookup
+            const station = STATIONS[id as StationId];
             return (
               <div key={id} className="mb-12 break-inside-avoid">
                 <div className="flex items-center gap-4 mb-4">
@@ -89,7 +94,7 @@ const SubmissionPack: React.FC<SubmissionPackProps> = ({ state, onBack }) => {
                   <div>
                     <p className="text-[10px] font-bold uppercase text-slate-400 mb-1">Researcher Findings:</p>
                     <div className="text-base whitespace-pre-wrap leading-relaxed">
-                      {progress.draft}
+                      {p.draft}
                     </div>
                   </div>
                 </div>
@@ -99,9 +104,16 @@ const SubmissionPack: React.FC<SubmissionPackProps> = ({ state, onBack }) => {
         </section>
 
         <footer className="mt-20 pt-10 border-t border-slate-200 text-[10px] text-center text-slate-400 uppercase tracking-[0.4em]">
-          End of Official Research Report // Verification Required for Elevfeedback
+          End of Official Research Report // Verification Required for External Feedback
         </footer>
       </div>
+      <style>{`
+        @media print {
+          .no-print { display: none; }
+          body { background: white; color: black; }
+          .vault-panel { border-color: #000; }
+        }
+      `}</style>
     </div>
   );
 };
