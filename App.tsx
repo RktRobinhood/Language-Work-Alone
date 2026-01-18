@@ -12,8 +12,9 @@ import PuzzleModal from './components/PuzzleModal.tsx';
 import MissionHub from './components/MissionHub.tsx';
 import SubmissionPack from './components/SubmissionPack.tsx';
 import TerminalUpgrades from './components/TerminalUpgrades.tsx';
+import DeathScreen from './components/DeathScreen.tsx';
 
-const STORAGE_KEY = 'vault_tok_v6_minimal';
+const STORAGE_KEY = 'vault_tok_v7_dice';
 const MIN_WORK_TIME = 50 * 60; 
 
 const App: React.FC = () => {
@@ -22,6 +23,7 @@ const App: React.FC = () => {
   const [showPuzzle, setShowPuzzle] = useState(false);
   const [currentPuzzle, setCurrentPuzzle] = useState(PUZZLES[0]);
   const [isDossierUnlocked, setIsDossierUnlocked] = useState(false);
+  const [showDeathScreen, setShowDeathScreen] = useState(false);
 
   const addLog = useCallback((type: LogEntry['type'], msg: string) => {
     setState(prev => {
@@ -31,21 +33,7 @@ const App: React.FC = () => {
     });
   }, []);
 
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setState(parsed);
-      } catch (e) {
-        createNewSession();
-      }
-    } else {
-      createNewSession();
-    }
-  }, []);
-
-  const createNewSession = () => {
+  const createNewSession = useCallback(() => {
     const seed = `${Math.random().toString(36).substring(7)}-${Date.now()}`;
     const allIds = Object.keys(STATIONS) as StationId[];
     const rng = new SeededRNG(seed);
@@ -70,11 +58,35 @@ const App: React.FC = () => {
     };
     
     setState(initialState);
+    setShowDeathScreen(false);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(initialState));
-  };
+  }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setState(parsed);
+      } catch (e) {
+        createNewSession();
+      }
+    } else {
+      createNewSession();
+    }
+  }, [createNewSession]);
 
   useEffect(() => {
     if (!state) return;
+    if (state.integrity <= 0 && !showDeathScreen) {
+      setShowDeathScreen(true);
+      sfx.glitch();
+      addLog('ANOMALY', 'CRITICAL FAILURE: Researcher neural integrity reached 0%. Archives locked.');
+    }
+  }, [state?.integrity, showDeathScreen, addLog]);
+
+  useEffect(() => {
+    if (!state || showDeathScreen) return;
     const interval = setInterval(() => {
       setState(prev => {
         if (!prev) return null;
@@ -98,7 +110,7 @@ const App: React.FC = () => {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [state, activeTab, isDossierUnlocked, showPuzzle]);
+  }, [state, activeTab, isDossierUnlocked, showPuzzle, showDeathScreen]);
 
   const handleStartStation = (id: StationId) => {
     const station = STATIONS[id];
@@ -123,29 +135,45 @@ const App: React.FC = () => {
     setActiveTab('station');
   };
 
-  const handleCompleteStation = (stationId: StationId, answers: number[], draft: string) => {
-    sfx.confirm();
+  const handleCompleteStation = (stationId: StationId, roll: number, draft: string) => {
     const station = STATIONS[stationId];
-    addLog('RESEARCH', `Node stabilized: ${station.title}. Synthesized findings regarding ${station.coreIdea}.`);
+    const success = roll >= station.difficultyDC;
     
+    if (success) {
+      sfx.confirm();
+      addLog('DICE', `NATURAL ${roll} CHECK SUCCESS against DC ${station.difficultyDC}. Epistemic stability confirmed.`);
+    } else {
+      sfx.error();
+      addLog('DICE', `CHECK FAILURE: Rolled ${roll} against DC ${station.difficultyDC}. Logic paradox detected.`);
+    }
+
     setState(prev => {
       if (!prev) return null;
-      const boost = prev.unlockedUpgrades.includes('pip_boy') ? 1.15 : 1;
-      const xpGain = 500 * boost;
+      const boost = prev.unlockedUpgrades.includes('pip_boy') ? 1.25 : 1;
+      const baseXP = success ? 500 : 200;
+      const xpGain = baseXP * boost;
       const newlyDiscovered = station.neighbors.filter(n => !prev.discoveredNodes.includes(n));
+      const integrityLoss = success ? 0 : 15;
 
       return {
         ...prev,
         xp: prev.xp + Math.floor(xpGain),
-        discoveredNodes: [...prev.discoveredNodes, ...newlyDiscovered],
+        integrity: Math.max(0, prev.integrity - integrityLoss),
+        discoveredNodes: Array.from(new Set([...prev.discoveredNodes, ...newlyDiscovered])),
         stationProgress: {
           ...prev.stationProgress,
-          [stationId]: { completedAt: Date.now(), draft, failedAttempts: 0, startTime: Date.now() }
+          [stationId]: { 
+            completedAt: Date.now(), 
+            draft, 
+            failedAttempts: 0, 
+            startTime: Date.now(),
+            rollResult: roll
+          }
         },
         currentStationId: null,
         clearanceLevel: Math.floor((prev.xp + xpGain) / 1000) + 1,
-        rations: prev.rations + 2,
-        fuel: Math.min(100, prev.fuel + 5)
+        rations: prev.rations + (success ? 4 : 1),
+        fuel: Math.min(100, prev.fuel + (success ? 10 : 2))
       };
     });
     setActiveTab('dashboard');
@@ -154,71 +182,74 @@ const App: React.FC = () => {
   if (!state) return null;
 
   return (
-    <Layout state={state} onNav={setActiveTab} activeTab={activeTab} isDossierUnlocked={isDossierUnlocked}>
-      <div className="h-full flex flex-col">
-        {activeTab === 'dashboard' && (
-          <MissionHub 
-            state={state} 
-            onStartStation={handleStartStation} 
-            onShowUpgrades={() => setActiveTab('upgrades')}
-            onShowSubmission={() => setActiveTab('submission')}
-            isDossierUnlocked={isDossierUnlocked}
+    <>
+      <Layout state={state} onNav={setActiveTab} activeTab={activeTab} isDossierUnlocked={isDossierUnlocked}>
+        <div className="h-full flex flex-col">
+          {activeTab === 'dashboard' && (
+            <MissionHub 
+              state={state} 
+              onStartStation={handleStartStation} 
+              onShowUpgrades={() => setActiveTab('upgrades')}
+              onShowSubmission={() => setActiveTab('submission')}
+              isDossierUnlocked={isDossierUnlocked}
+            />
+          )}
+          
+          {activeTab === 'station' && state.currentStationId && (
+            <StationView 
+              station={STATIONS[state.currentStationId]}
+              onComplete={handleCompleteStation}
+              onCancel={() => { sfx.error(); setState(prev => prev ? ({ ...prev, currentStationId: null }) : null); setActiveTab('dashboard'); }}
+              state={state}
+              onUpdateState={(updater) => setState(prev => prev ? updater(prev) : null)}
+              addLog={addLog}
+            />
+          )}
+
+          {activeTab === 'upgrades' && (
+            <TerminalUpgrades 
+              state={state} 
+              onBuy={(id, cost) => {
+                setState(prev => prev ? ({ ...prev, xp: prev.xp - cost, unlockedUpgrades: [...prev.unlockedUpgrades, id] }) : null);
+                addLog('ACHIEVEMENT', `Acquired upgrade: ${UPGRADES.find(u => u.id === id)?.name}`);
+                sfx.confirm();
+              }} 
+              onBack={() => setActiveTab('dashboard')} 
+            />
+          )}
+
+          {activeTab === 'submission' && (
+            <SubmissionPack state={state} onBack={() => setActiveTab('dashboard')} />
+          )}
+        </div>
+
+        {showPuzzle && (
+          <PuzzleModal 
+            puzzle={currentPuzzle} 
+            onClose={(success) => {
+              setShowPuzzle(false);
+              if (success) {
+                addLog('SYSTEM', 'Logic gate bypassed. System performance restored.');
+                sfx.confirm();
+                const r = currentPuzzle.reward;
+                setState(prev => prev ? ({ 
+                  ...prev, 
+                  xp: prev.xp + (r.xp || 0),
+                  fuel: Math.min(100, prev.fuel + (r.fuel || 0)),
+                  rations: prev.rations + (r.rations || 0),
+                  integrity: Math.min(100, prev.integrity + (r.integrity || 0))
+                }) : null);
+              } else {
+                addLog('ANOMALY', 'Failed to bypass logic gate. Integrity compromised.');
+                sfx.error();
+                setState(prev => prev ? ({ ...prev, integrity: Math.max(0, prev.integrity - 10) }) : null);
+              }
+            }}
           />
         )}
-        
-        {activeTab === 'station' && state.currentStationId && (
-          <StationView 
-            station={STATIONS[state.currentStationId]}
-            onComplete={handleCompleteStation}
-            onCancel={() => { sfx.error(); setState(prev => prev ? ({ ...prev, currentStationId: null }) : null); setActiveTab('dashboard'); }}
-            state={state}
-            onUpdateState={(updater) => setState(prev => prev ? updater(prev) : null)}
-            addLog={addLog}
-          />
-        )}
-
-        {activeTab === 'upgrades' && (
-          <TerminalUpgrades 
-            state={state} 
-            onBuy={(id, cost) => {
-              setState(prev => prev ? ({ ...prev, xp: prev.xp - cost, unlockedUpgrades: [...prev.unlockedUpgrades, id] }) : null);
-              addLog('ACHIEVEMENT', `Acquired upgrade: ${UPGRADES.find(u => u.id === id)?.name}`);
-              sfx.confirm();
-            }} 
-            onBack={() => setActiveTab('dashboard')} 
-          />
-        )}
-
-        {activeTab === 'submission' && (
-          <SubmissionPack state={state} onBack={() => setActiveTab('dashboard')} />
-        )}
-      </div>
-
-      {showPuzzle && (
-        <PuzzleModal 
-          puzzle={currentPuzzle} 
-          onClose={(success) => {
-            setShowPuzzle(false);
-            if (success) {
-              addLog('SYSTEM', 'Logic gate bypassed. System performance restored.');
-              sfx.confirm();
-              const r = currentPuzzle.reward;
-              setState(prev => prev ? ({ 
-                ...prev, 
-                xp: prev.xp + (r.xp || 0),
-                fuel: Math.min(100, prev.fuel + (r.fuel || 0)),
-                rations: prev.rations + (r.rations || 0),
-                integrity: Math.min(100, prev.integrity + (r.integrity || 0))
-              }) : null);
-            } else {
-              addLog('ANOMALY', 'Failed to bypass logic gate. Integrity compromised.');
-              sfx.error();
-              setState(prev => prev ? ({ ...prev, integrity: Math.max(0, prev.integrity - 10) }) : null);
-            }
-          }}
-        />
-      )}
-    </Layout>
+      </Layout>
+      {showDeathScreen && <DeathScreen onReset={createNewSession} />}
+    </>
   );
 };
 

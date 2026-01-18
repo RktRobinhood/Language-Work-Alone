@@ -44,11 +44,12 @@ export interface Station {
   lessonPlan: string;
   fuelCost?: number;
   rationCost?: number;
+  difficultyDC: number; // For the dice roll check
 }
 
 export interface LogEntry {
   t: number;
-  type: 'SYSTEM' | 'RESEARCH' | 'ANOMALY' | 'ACHIEVEMENT';
+  type: 'SYSTEM' | 'RESEARCH' | 'ANOMALY' | 'ACHIEVEMENT' | 'DICE';
   msg: string;
 }
 
@@ -65,6 +66,7 @@ export interface GameState {
     completedAt?: number;
     failedAttempts: number;
     draft?: string;
+    rollResult?: number;
     extraData?: any;
   }>;
   xp: number;
