@@ -15,7 +15,7 @@ import TerminalUpgrades from './components/TerminalUpgrades.tsx';
 import DeathScreen from './components/DeathScreen.tsx';
 import FinalSynthesis from './components/FinalSynthesis.tsx';
 
-const STORAGE_KEY = 'vault_tok_v10_stable';
+const STORAGE_KEY = 'vault_tok_v12_final';
 const SYNC_THRESHOLD = 6; 
 
 const App: React.FC = () => {
@@ -39,10 +39,12 @@ const App: React.FC = () => {
     const rng = new SeededRNG(seed);
     const shuffled = rng.shuffle([...allIds]);
     
-    // Improved prerequisite logic: Ensure prereq is one of the visible/earlier nodes
+    // Prerequisite logic: Guarantee starting path
     const prereqs: Record<string, StationId> = {};
-    for (let i = 2; i < shuffled.length; i++) {
-      // Pick a random node that appeared EARLIER in the shuffle to act as a logical bridge
+    const startingNodes = [shuffled[0], shuffled[1], shuffled[2]];
+    
+    // Every node from index 3 onwards must have a prereq from the pool of nodes that came BEFORE it
+    for (let i = 3; i < shuffled.length; i++) {
       const randomPre = shuffled[Math.floor(rng.next() * i)];
       prereqs[shuffled[i]] = randomPre;
     }
@@ -51,8 +53,8 @@ const App: React.FC = () => {
       seed,
       stage: GameStage.FIELD_RESEARCH,
       totalActiveTime: 0,
-      discoveredNodes: [shuffled[0], shuffled[1]],
-      decryptedNodes: [shuffled[0], shuffled[1]],
+      discoveredNodes: startingNodes,
+      decryptedNodes: startingNodes,
       nodePrerequisites: prereqs,
       currentStationId: null,
       lastPosition: { x: STATIONS[shuffled[0]].x, y: STATIONS[shuffled[0]].y },
@@ -62,7 +64,7 @@ const App: React.FC = () => {
       integrity: 100,
       fuel: 100,
       rations: 20,
-      researchLog: [{ t: Date.now(), type: 'STORY', msg: 'The Animus awakens. Spanish voices whisper in the static: "El mapa no es el territorio." Synchronization at 0%.' }],
+      researchLog: [{ t: Date.now(), type: 'STORY', msg: 'Animus sequence initiated. "El mapa no es el territorio." 3 entry nodes decrypted. Use the network map to bridge semantic gaps.' }],
       unlockedUpgrades: []
     };
     
@@ -76,10 +78,10 @@ const App: React.FC = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Data migration and integrity check to prevent black screens
-        if (!parsed.discoveredNodes) throw new Error("Invalid state");
+        if (!parsed.discoveredNodes || !parsed.nodePrerequisites) throw new Error("Incomplete save state");
         setState(parsed);
       } catch (e) {
+        console.error("Critical error in save state. Purging memory...", e);
         createNewSession();
       }
     } else {
@@ -92,7 +94,7 @@ const App: React.FC = () => {
     if (state.integrity <= 0 && !showDeathScreen) {
       setShowDeathScreen(true);
       sfx.glitch();
-      addLog('STORY', 'CRITICAL DESYNC. Your linguistic core has shattered. A French echo laughs: "C’est la fin."');
+      addLog('STORY', 'NEURAL COLLAPSE DETECTED. Desynchronization complete.');
     }
   }, [state?.integrity, showDeathScreen, addLog]);
 
@@ -102,7 +104,7 @@ const App: React.FC = () => {
     if (!isDecrypted) {
       sfx.error();
       const pre = state.nodePrerequisites[id];
-      addLog('ANOMALY', `FAILED: Memory block encrypted. Stabilize [${pre.toUpperCase()}] to extract the decryption key.`);
+      addLog('ANOMALY', `FAILED: Memory encrypted. Requires decryption key from [${STATIONS[pre]?.title.toUpperCase() || 'ROOT'}].`);
       return;
     }
 
@@ -112,11 +114,11 @@ const App: React.FC = () => {
 
     if (state.fuel < fuelCost || state.rations < rationCost) {
       sfx.error();
-      addLog('RESEARCH', 'Insufficient Sync Fuel. Your consciousness cannot sustain this memory projection.');
+      addLog('RESEARCH', 'Low neural fuel. Sync aborted.');
       return;
     }
 
-    addLog('STORY', `Synchronizing with memory cluster: ${station.title}. The ghosts of dead languages gather...`);
+    addLog('STORY', `Syncing with cluster: ${station.title}. Hold steady.`);
     sfx.scan();
     setState(prev => prev ? ({ 
       ...prev, 
@@ -128,56 +130,38 @@ const App: React.FC = () => {
   };
 
   const handleCompleteStation = (stationId: StationId, roll: number, draft: string, finalDC: number, rewardMod: number) => {
-    const station = STATIONS[stationId];
     const success = roll >= finalDC;
     
     if (success) {
       sfx.confirm();
-      const msgs = [
-        `The D20 clatters: ${roll}. Victory. You bridge the semantic gap. The knowledge flows like a river. ¡Lo lograste!`,
-        `Roll: ${roll}. SUCCESS. The Animus stabilizes. You feel a sudden mastery over the logic. 很好.`,
-        `Check PASSED (${roll}). You weave the contradictory evidence into a coherent shield. Data stream: STABLE.`
-      ];
-      addLog('STORY', msgs[Math.floor(Math.random() * msgs.length)]);
+      addLog('STORY', `SYNC OK: Roll ${roll} verified sequence. Bridge established.`);
     } else {
       sfx.error();
-      const msgs = [
-        `The D20 clatters: ${roll}. FAILURE. A linguistic rupture scars your synapses. You hear a German echo: "Das ist nicht gut."`,
-        `Roll: ${roll}. CRITICAL ERROR. The translation engine screeches. You lose your grip on the narrative. -20 Integrity.`,
-        `Check FAILED (${roll}). The logic loops back on itself, crushing your stability. Semantic bleed detected.`
-      ];
-      addLog('STORY', msgs[Math.floor(Math.random() * msgs.length)]);
+      addLog('STORY', `SYNC ERROR: Roll ${roll} failed. Neural scarring detected.`);
     }
 
     setState(prev => {
       if (!prev) return null;
       const boost = (prev.unlockedUpgrades.includes('pip_boy') ? 1.25 : 1) * rewardMod;
       const baseXP = success ? 500 : 200;
-      const xpGain = baseXP * boost;
-      const neighbors = station.neighbors;
-      const integrityLoss = success ? 0 : 20;
-
-      const newDiscovered = Array.from(new Set([...prev.discoveredNodes, ...neighbors]));
-      const completedIds = [...Object.keys(prev.stationProgress), stationId];
-      
-      // Unlock new decrypted nodes based on prerequisites
-      const newlyDecrypted = newDiscovered.filter(id => {
-        const prereq = prev.nodePrerequisites[id];
-        return !prereq || completedIds.includes(prereq);
-      });
-
+      const neighbors = STATIONS[stationId].neighbors;
       const updatedProgress = {
         ...prev.stationProgress,
         [stationId]: { completedAt: Date.now(), draft, rollResult: roll }
       };
 
-      const newSyncRate = Math.min(100, Math.floor((Object.keys(updatedProgress).length / 12) * 100));
+      const newDiscovered = Array.from(new Set([...prev.discoveredNodes, ...neighbors]));
+      const completedIds = Object.keys(updatedProgress);
+      const newlyDecrypted = newDiscovered.filter(id => {
+        const prereq = prev.nodePrerequisites[id];
+        return !prereq || completedIds.includes(prereq);
+      });
 
-      return {
+      const nextState: GameState = {
         ...prev,
-        xp: prev.xp + Math.floor(xpGain),
-        syncRate: newSyncRate,
-        integrity: Math.max(0, prev.integrity - integrityLoss),
+        xp: prev.xp + Math.floor(baseXP * boost),
+        syncRate: Math.min(100, Math.floor((completedIds.length / 12) * 100)),
+        integrity: Math.max(0, prev.integrity - (success ? 0 : 20)),
         discoveredNodes: newDiscovered,
         decryptedNodes: Array.from(new Set([...prev.decryptedNodes, ...newlyDecrypted])),
         stationProgress: updatedProgress,
@@ -185,11 +169,19 @@ const App: React.FC = () => {
         rations: prev.rations + (success ? 4 : 1),
         fuel: Math.min(100, prev.fuel + (success ? 10 : 2))
       };
+      
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
+      return nextState;
     });
     setActiveTab('dashboard');
   };
 
-  if (!state) return null;
+  if (!state) return (
+    <div className="flex-1 flex flex-col items-center justify-center bg-black text-[#ffb000]">
+      <div className="w-10 h-10 border-2 border-t-[#ffb000] border-[#ffb000]/20 rounded-full animate-spin mb-4"></div>
+      <p className="text-[10px] font-mono animate-pulse uppercase tracking-widest">Hydrating Memory Corridors...</p>
+    </div>
+  );
 
   const stabilizedCount = Object.keys(state.stationProgress).length;
 
@@ -220,8 +212,9 @@ const App: React.FC = () => {
           <TerminalUpgrades 
             state={state} 
             onBuy={(id, cost) => {
-              setState(prev => prev ? ({ ...prev, xp: prev.xp - cost, unlockedUpgrades: [...prev.unlockedUpgrades, id] }) : null);
-              addLog('ACHIEVEMENT', `Animus Upgrade Configured: ${UPGRADES.find(u => u.id === id)?.name}`);
+              const nextState = { ...state, xp: state.xp - cost, unlockedUpgrades: [...state.unlockedUpgrades, id] };
+              setState(nextState);
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
               sfx.confirm();
             }} 
             onBack={() => setActiveTab('dashboard')} 
@@ -236,9 +229,10 @@ const App: React.FC = () => {
           <FinalSynthesis 
             state={state} 
             onSyncFinish={(sync) => {
-              setState(prev => prev ? ({ ...prev, stage: GameStage.COMPLETE, syncRate: sync }) : null);
+              const nextState = { ...state, stage: GameStage.COMPLETE, syncRate: sync };
+              setState(nextState);
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
               setActiveTab('submission');
-              addLog('SYNC', `FINAL SYNCHRONIZATION COMPLETE. Global Sync Rate: ${sync}%. Saving to history.`);
             }}
             onIntegrityLoss={(amt) => setState(prev => prev ? ({ ...prev, integrity: Math.max(0, prev.integrity - amt) }) : null)}
           />
@@ -251,17 +245,8 @@ const App: React.FC = () => {
           onClose={(success) => {
             setShowPuzzle(false);
             if (success) {
-              addLog('STORY', 'Memory corridor bypass successful. Integrity reinforced.');
               const r = currentPuzzle.reward;
-              setState(prev => prev ? ({ 
-                ...prev, 
-                xp: prev.xp + (r.xp || 0),
-                fuel: Math.min(100, prev.fuel + (r.fuel || 0)),
-                integrity: Math.min(100, prev.integrity + (r.integrity || 0))
-              }) : null);
-            } else {
-              addLog('STORY', 'Bypass failed. Desynchronization shockwave detected.');
-              setState(prev => prev ? ({ ...prev, integrity: Math.max(0, prev.integrity - 10) }) : null);
+              setState(prev => prev ? ({ ...prev, xp: prev.xp + (r.xp || 0), integrity: Math.min(100, prev.integrity + (r.integrity || 0)) }) : null);
             }
           }}
         />
