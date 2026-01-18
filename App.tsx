@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { GameState, StationId, LogEntry, GameStage } from './types.ts';
-import { STATIONS, PUZZLES, UPGRADES } from './constants.tsx';
+import { STATIONS, PUZZLES, UPGRADES, LINGUISTIC_JOKES } from './constants.tsx';
 import { SeededRNG } from './utils/rng.ts';
 import { sfx } from './utils/sfx.ts';
 
@@ -15,7 +15,7 @@ import TerminalUpgrades from './components/TerminalUpgrades.tsx';
 import DeathScreen from './components/DeathScreen.tsx';
 import FinalSynthesis from './components/FinalSynthesis.tsx';
 
-const STORAGE_KEY = 'vault_tok_v12_final';
+const STORAGE_KEY = 'vault_tok_v14_narrative';
 const SYNC_THRESHOLD = 6; 
 
 const App: React.FC = () => {
@@ -33,17 +33,39 @@ const App: React.FC = () => {
     });
   }, []);
 
+  const generateNarrativeLog = (stationId: StationId, success: boolean, roll: number) => {
+    const station = STATIONS[stationId];
+    const languages = ["Spanish", "French", "German", "Japanese", "Mandarin"];
+    const lang = languages[Math.floor(Math.random() * languages.length)];
+    
+    if (success) {
+      const successMsgs = [
+        `The semantic bridge at [${station.title}] held firm. Data synchronized. A voice in ${lang} whispers: "Completado".`,
+        `Roll: ${roll}. Victory. You avoided the 'lost in translation' pitfall. The Animus logic purrs like a well-oiled machine.`,
+        `Synaptic verification PASSED. [${station.title}] knowledge is now an integral part of your framework. "C'est magnifique!"`,
+        `You've mastered the linguistic nuance of [${station.title}]. The meaning is clear, even if the words are foreign.`
+      ];
+      addLog('STORY', successMsgs[Math.floor(Math.random() * successMsgs.length)]);
+    } else {
+      const failMsgs = [
+        `CRITICAL ERROR in [${station.title}]. Semantic bleed detected. You hear a ${lang} echo: "Das ist nicht gut." -20 Integrity.`,
+        `Roll: ${roll}. The bridge collapsed. A logic paradox formed where the translation should have been.`,
+        `DESYNC: Your interpretation of [${station.title}] was culturally skewed. The Animus rejects this bias.`,
+        `FAILED SYNC. A "faux pas" of cognitive proportions. Your neural pathways are scarred by the dissonance.`
+      ];
+      addLog('ANOMALY', failMsgs[Math.floor(Math.random() * failMsgs.length)]);
+    }
+  };
+
   const createNewSession = useCallback(() => {
     const seed = `${Math.random().toString(36).substring(7)}-${Date.now()}`;
     const allIds = Object.keys(STATIONS) as StationId[];
     const rng = new SeededRNG(seed);
     const shuffled = rng.shuffle([...allIds]);
     
-    // Prerequisite logic: Guarantee starting path
     const prereqs: Record<string, StationId> = {};
     const startingNodes = [shuffled[0], shuffled[1], shuffled[2]];
     
-    // Every node from index 3 onwards must have a prereq from the pool of nodes that came BEFORE it
     for (let i = 3; i < shuffled.length; i++) {
       const randomPre = shuffled[Math.floor(rng.next() * i)];
       prereqs[shuffled[i]] = randomPre;
@@ -53,6 +75,7 @@ const App: React.FC = () => {
       seed,
       stage: GameStage.FIELD_RESEARCH,
       totalActiveTime: 0,
+      clearanceLevel: 1,
       discoveredNodes: startingNodes,
       decryptedNodes: startingNodes,
       nodePrerequisites: prereqs,
@@ -64,7 +87,7 @@ const App: React.FC = () => {
       integrity: 100,
       fuel: 100,
       rations: 20,
-      researchLog: [{ t: Date.now(), type: 'STORY', msg: 'Animus sequence initiated. "El mapa no es el territorio." 3 entry nodes decrypted. Use the network map to bridge semantic gaps.' }],
+      researchLog: [{ t: Date.now(), type: 'STORY', msg: 'Animus sequence initiated. "El mapa no es el territorio." 3 entry nodes decrypted.' }],
       unlockedUpgrades: []
     };
     
@@ -78,10 +101,10 @@ const App: React.FC = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (!parsed.discoveredNodes || !parsed.nodePrerequisites) throw new Error("Incomplete save state");
+        if (parsed && !parsed.clearanceLevel) parsed.clearanceLevel = 1;
+        if (!parsed.discoveredNodes || !parsed.nodePrerequisites) throw new Error("Incomplete state");
         setState(parsed);
       } catch (e) {
-        console.error("Critical error in save state. Purging memory...", e);
         createNewSession();
       }
     } else {
@@ -89,12 +112,31 @@ const App: React.FC = () => {
     }
   }, [createNewSession]);
 
+  // Occasional linguistic jokes or glitches
+  useEffect(() => {
+    if (!state || state.stage === GameStage.COMPLETE) return;
+    const interval = setInterval(() => {
+      if (Math.random() > 0.85) {
+        const joke = LINGUISTIC_JOKES[Math.floor(Math.random() * LINGUISTIC_JOKES.length)];
+        addLog('STORY', `[NARRATIVE_BUFFER]: ${joke}`);
+        
+        // Randomly trigger a puzzle
+        if (Math.random() > 0.6 && !showPuzzle) {
+          setCurrentPuzzle(PUZZLES[Math.floor(Math.random() * PUZZLES.length)]);
+          setShowPuzzle(true);
+          addLog('SYSTEM', 'Logic Gate Override Required. Detecting linguistic anomaly in the nearby sector.');
+        }
+      }
+    }, 45000);
+    return () => clearInterval(interval);
+  }, [state, showPuzzle, addLog]);
+
   useEffect(() => {
     if (!state) return;
     if (state.integrity <= 0 && !showDeathScreen) {
       setShowDeathScreen(true);
       sfx.glitch();
-      addLog('STORY', 'NEURAL COLLAPSE DETECTED. Desynchronization complete.');
+      addLog('STORY', 'NEURAL COLLAPSE. Desynchronization complete.');
     }
   }, [state?.integrity, showDeathScreen, addLog]);
 
@@ -104,7 +146,7 @@ const App: React.FC = () => {
     if (!isDecrypted) {
       sfx.error();
       const pre = state.nodePrerequisites[id];
-      addLog('ANOMALY', `FAILED: Memory encrypted. Requires decryption key from [${STATIONS[pre]?.title.toUpperCase() || 'ROOT'}].`);
+      addLog('ANOMALY', `BLOCK ENCRYPTED. Requires key from [${STATIONS[pre]?.title || 'Unknown Source'}].`);
       return;
     }
 
@@ -114,11 +156,11 @@ const App: React.FC = () => {
 
     if (state.fuel < fuelCost || state.rations < rationCost) {
       sfx.error();
-      addLog('RESEARCH', 'Low neural fuel. Sync aborted.');
+      addLog('RESEARCH', 'Insufficient neural fuel for projection.');
       return;
     }
 
-    addLog('STORY', `Syncing with cluster: ${station.title}. Hold steady.`);
+    addLog('STORY', `Synchronizing with: ${station.title}. Maintaining link...`);
     sfx.scan();
     setState(prev => prev ? ({ 
       ...prev, 
@@ -131,20 +173,14 @@ const App: React.FC = () => {
 
   const handleCompleteStation = (stationId: StationId, roll: number, draft: string, finalDC: number, rewardMod: number) => {
     const success = roll >= finalDC;
-    
-    if (success) {
-      sfx.confirm();
-      addLog('STORY', `SYNC OK: Roll ${roll} verified sequence. Bridge established.`);
-    } else {
-      sfx.error();
-      addLog('STORY', `SYNC ERROR: Roll ${roll} failed. Neural scarring detected.`);
-    }
+    generateNarrativeLog(stationId, success, roll);
 
     setState(prev => {
       if (!prev) return null;
       const boost = (prev.unlockedUpgrades.includes('pip_boy') ? 1.25 : 1) * rewardMod;
       const baseXP = success ? 500 : 200;
       const neighbors = STATIONS[stationId].neighbors;
+      
       const updatedProgress = {
         ...prev.stationProgress,
         [stationId]: { completedAt: Date.now(), draft, rollResult: roll }
@@ -152,6 +188,7 @@ const App: React.FC = () => {
 
       const newDiscovered = Array.from(new Set([...prev.discoveredNodes, ...neighbors]));
       const completedIds = Object.keys(updatedProgress);
+      
       const newlyDecrypted = newDiscovered.filter(id => {
         const prereq = prev.nodePrerequisites[id];
         return !prereq || completedIds.includes(prereq);
@@ -167,7 +204,8 @@ const App: React.FC = () => {
         stationProgress: updatedProgress,
         currentStationId: null,
         rations: prev.rations + (success ? 4 : 1),
-        fuel: Math.min(100, prev.fuel + (success ? 10 : 2))
+        fuel: Math.min(100, prev.fuel + (success ? 10 : 2)),
+        clearanceLevel: Math.floor(completedIds.length / 3) + 1
       };
       
       localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
@@ -177,9 +215,10 @@ const App: React.FC = () => {
   };
 
   if (!state) return (
-    <div className="flex-1 flex flex-col items-center justify-center bg-black text-[#ffb000]">
-      <div className="w-10 h-10 border-2 border-t-[#ffb000] border-[#ffb000]/20 rounded-full animate-spin mb-4"></div>
-      <p className="text-[10px] font-mono animate-pulse uppercase tracking-widest">Hydrating Memory Corridors...</p>
+    <div className="flex-1 flex flex-col items-center justify-center bg-black text-[#ffb000] p-10 text-center">
+      <div className="w-12 h-12 border-4 border-t-[#ffb000] border-[#ffb000]/20 rounded-full animate-spin mb-6"></div>
+      <h2 className="text-xl font-bold uppercase tracking-widest mb-2 crt-text">Establishing Link</h2>
+      <p className="text-[10px] font-mono opacity-40 uppercase tracking-widest">Hydrating Neural Memory Corridors...</p>
     </div>
   );
 
@@ -187,7 +226,7 @@ const App: React.FC = () => {
 
   return (
     <Layout state={state} onNav={setActiveTab} activeTab={activeTab} stabilizedCount={stabilizedCount}>
-      <div className="h-full flex flex-col">
+      <div className="h-full flex flex-col relative">
         {activeTab === 'dashboard' && (
           <MissionHub 
             state={state} 

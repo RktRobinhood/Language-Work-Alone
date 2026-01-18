@@ -8,11 +8,22 @@ export const UPGRADES = [
   { id: 'mre_pack', name: 'Synapse MRE', desc: 'Bio-nutrients to sustain deep conceptual dives.', cost: 500, icon: '🍱' }
 ];
 
+export const LINGUISTIC_JOKES = [
+  "A French word walks into a bar. The bartender says, 'We don't serve your type here.' The word says, 'Je ne suis pas une type, je suis un concept.'",
+  "Why do German speakers always know where they are? Because they are always 'in der Ordnung'.",
+  "How many translators does it take to change a lightbulb? It depends on the context.",
+  "An English 'it' and a Potawatomi 'who' walk into a forest. The 'it' sees a resource; the 'who' sees a relative.",
+  "The Animus detected a pun in the Spanish sector: ¿Por qué los pájaros no usan Facebook? Porque ya tienen Twitter (Trinar).",
+  "Linguistic Joke #402: 'I have a fear of German compound words.' 'That's called Donaudampfschifffahrtselektrizitätenhauptbetriebswerkbauunterbeamtengesellschaft-phobia.'",
+  "A sign in a Swiss hotel: 'Please leave your values at the front desk.' TOK Note: Values or valuables? The ethics of translation matters."
+];
+
 export const PUZZLES: Puzzle[] = [
-  { id: 'p1', type: 'tok-concept', prompt: "TERM: This is the specific focus of TOK; it asks how we know what we know.", solution: "knowledge question", reward: { fuel: 25, xp: 100 } },
-  { id: 'p2', type: 'fallacy', prompt: "FALLACY: 'Everyone believes it, so it must be true.'", solution: "ad populum", reward: { rations: 5, xp: 150 } },
-  { id: 'p3', type: 'logic', prompt: "SYLLOGISM: All languages are systems. English is a language. Therefore, English is a ___.", solution: "system", reward: { xp: 200, integrity: 15 } },
-  { id: 'p4', type: 'tok-concept', prompt: "CONCEPT: The shared knowledge within a specific profession or field.", solution: "community of knowers", reward: { fuel: 10, rations: 2 } }
+  { id: 'p1', type: 'tok-concept', prompt: "In the land of the 'it', nature is a tool. In the land of the 'who', nature is a teacher. What is the bridge between them?", solution: "animacy", reward: { fuel: 25, xp: 100 } },
+  { id: 'p2', type: 'fallacy', prompt: "A logic gate is blocked. REQ: A word that means 'the study of signs and symbols and their use or interpretation'.", solution: "semiotics", reward: { rations: 5, xp: 150 } },
+  { id: 'p3', type: 'logic', prompt: "French: Chat. Spanish: Gato. Japanese: Neko. The thing itself is a ___. (Hint: Not the word, the concept).", solution: "signified", reward: { xp: 200, integrity: 15 } },
+  { id: 'p4', type: 'tok-concept', prompt: "TERM: The phenomenon where a concept cannot be accurately expressed in another language.", solution: "untranslatability", reward: { fuel: 10, rations: 2 } },
+  { id: 'p5', type: 'pattern', prompt: "Language : Culture :: Grammar : ___.", solution: "logic", reward: { xp: 300, integrity: 10 } }
 ];
 
 export const STATIONS: Record<StationId, Station> = {

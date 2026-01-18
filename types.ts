@@ -64,6 +64,7 @@ export interface GameState {
   seed: string;
   stage: GameStage;
   totalActiveTime: number;
+  clearanceLevel: number;
   discoveredNodes: StationId[];
   decryptedNodes: StationId[];
   nodePrerequisites: Record<string, StationId>;
