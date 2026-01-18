@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { GameState } from '../types';
-import { sfx } from '../utils/sfx';
 
 interface LayoutProps {
   state: GameState;
@@ -12,48 +11,46 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ state, children, activeTab, onNav }) => {
   return (
-    <div className="min-h-screen flex flex-col no-print bg-[#0f172a] text-slate-100">
-      <header className="sticky top-0 z-[60] bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
+    <div className="min-h-screen flex flex-col selection:bg-[#ffb000] selection:text-black">
+      <header className="sticky top-0 z-[60] bg-[#1a1a1a]/95 backdrop-blur border-b-4 border-[#ffb000] px-6 py-2">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <div className="flex flex-col cursor-pointer" onClick={() => { sfx.beep(440, 0.05); onNav('dashboard'); }}>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-emerald-500 rounded shadow-[0_0_8px_#10b981] animate-pulse"></div>
-                <h1 className="text-[11px] font-mono font-bold tracking-[0.2em] text-emerald-500 uppercase">
-                  TOK_LAB_v1.2
-                </h1>
-              </div>
-              <span className="text-[9px] font-mono text-slate-500 uppercase mt-0.5">Clinical_Research_Portal</span>
+            <div className="flex flex-col cursor-pointer" onClick={() => onNav('dashboard')}>
+              <h1 className="text-2xl font-bold crt-text tracking-tighter text-[#ffb000]">Vault TOK</h1>
+              <span className="text-[8px] font-mono uppercase opacity-50 -mt-1">Language Exploration Protocol</span>
             </div>
-
-            <nav className="hidden md:flex items-center gap-4 ml-8">
-              {['dashboard', 'upgrades', 'submission'].map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => { sfx.beep(500, 0.05); onNav(tab); }}
-                  className={`text-[9px] font-mono uppercase tracking-widest px-3 py-1.5 rounded transition-all ${
-                    activeTab === tab ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'text-slate-500 hover:text-slate-300'
-                  }`}
-                >
-                  {tab === 'dashboard' ? 'Core_Hub' : tab === 'submission' ? 'Archives' : tab}
-                </button>
-              ))}
+            
+            <nav className="hidden md:flex gap-4">
+              {['dashboard', 'upgrades', 'submission'].map(t => {
+                if (t === 'submission' && activeTab !== 'submission' && !localStorage.getItem('dossier_unlocked')) {
+                    // Hidden until condition met in App.tsx
+                }
+                return (
+                  <button 
+                    key={t} 
+                    onClick={() => onNav(t)}
+                    className={`text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 border border-transparent hover:border-[#ffb000] transition-all ${activeTab === t ? 'bg-[#ffb000] text-black' : 'text-[#ffb000]'}`}
+                  >
+                    {t === 'dashboard' ? 'Status' : t === 'submission' ? 'Dossier' : t}
+                  </button>
+                )
+              })}
             </nav>
           </div>
           
-          <div className="flex gap-4 font-mono text-right">
-            <div className="px-3 border-r border-slate-800">
-              <p className="text-[8px] uppercase text-slate-500 mb-0.5">Integrity</p>
-              <div className="flex items-center gap-2">
-                <div className="w-12 h-1 bg-slate-800 rounded-full overflow-hidden">
-                  <div className={`h-full transition-all ${state.dataIntegrity < 40 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${state.dataIntegrity}%` }}></div>
-                </div>
-                <p className={`text-[10px] font-bold ${state.dataIntegrity < 40 ? 'text-red-400' : 'text-emerald-400'}`}>{state.dataIntegrity}%</p>
+          <div className="flex gap-4 items-center">
+            <div className="text-right">
+              <p className="text-[8px] uppercase opacity-50">Integrity</p>
+              <div className="w-16 h-1 bg-black rounded-full overflow-hidden">
+                <div className={`h-full transition-all ${state.dataIntegrity < 40 ? 'bg-red-500' : 'bg-[#ffb000]'}`} style={{ width: `${state.dataIntegrity}%` }}></div>
               </div>
             </div>
-            <div>
-              <p className="text-[8px] uppercase text-slate-500 mb-0.5">Clearance</p>
-              <p className="text-[10px] font-bold text-emerald-400">LVL_{state.clearanceLevel}</p>
+            <div className="text-right min-w-[70px]">
+              <p className="text-[8px] uppercase opacity-50">XP Credits</p>
+              <p className="text-xs font-bold text-[#ffb000] crt-text">{state.xp}</p>
+            </div>
+            <div className="h-8 w-8 rounded-full border-2 border-[#ffb000] flex items-center justify-center font-bold text-[10px]">
+               {state.clearanceLevel}
             </div>
           </div>
         </div>

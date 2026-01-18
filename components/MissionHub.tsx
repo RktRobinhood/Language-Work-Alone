@@ -1,117 +1,111 @@
 
 import React from 'react';
-import { GameState, GameStage } from '../types';
+import { GameState, StationId } from '../types';
 import { STATIONS } from '../constants';
-import { sfx } from '../utils/sfx';
 
 interface MissionHubProps {
   state: GameState;
-  onStartStation: () => void;
+  onStartStation: (id: StationId) => void;
   onShowUpgrades: () => void;
   onShowSubmission: () => void;
+  isDossierUnlocked: boolean;
 }
 
-const MissionHub: React.FC<MissionHubProps> = ({ state, onStartStation, onShowUpgrades, onShowSubmission }) => {
-  const currentStationId = state.route[state.currentStationIndex];
-  const station = currentStationId ? STATIONS[currentStationId] : null;
-
+const MissionHub: React.FC<MissionHubProps> = ({ state, onStartStation, onShowUpgrades, onShowSubmission, isDossierUnlocked }) => {
   return (
-    <div className="flex flex-col gap-8 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-slate-800 pb-4">
+    <div className="flex flex-col gap-6 animate-in fade-in duration-500">
+      <div className="border-b-2 border-[#ffb000] pb-4 flex justify-between items-end">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-white mb-1">Laboratory_Operations</h2>
-          <p className="text-xs font-mono text-slate-500 uppercase tracking-widest">Target: Language_Area_of_Knowledge</p>
+          <h2 className="text-4xl font-bold crt-text mb-1 uppercase tracking-tighter">Vault Communications Hub</h2>
+          <div className="flex gap-4 text-[11px] font-mono text-[#ffb000]/70 uppercase">
+             <span>Vault: 76-TOK</span>
+             <span>Status: {state.dataIntegrity > 50 ? 'Stable' : 'Unstable'}</span>
+             <span>Active Nodes: {Object.keys(state.stationProgress).length} / {state.route.length}</span>
+          </div>
         </div>
         <div className="flex gap-2">
-           <button onClick={() => { sfx.beep(400, 0.05); onShowUpgrades(); }} className="px-4 py-2 bg-slate-800 text-[10px] font-mono font-bold uppercase tracking-widest rounded hover:bg-slate-700 transition-all border border-slate-700">Tools_Terminal</button>
-           <button onClick={() => { sfx.beep(400, 0.05); onShowSubmission(); }} className="px-4 py-2 bg-slate-800 text-[10px] font-mono font-bold uppercase tracking-widest rounded hover:bg-slate-700 transition-all border border-slate-700">Dossier_Archive</button>
+           <button onClick={onShowUpgrades} className="vault-btn text-[10px]">Shop Upgrades</button>
+           {isDossierUnlocked && (
+              <button onClick={onShowSubmission} className="vault-btn text-[10px] bg-[#ffb000] text-black">Export Dossier</button>
+           )}
         </div>
       </div>
 
-      <section className="glass-panel p-6 rounded border-emerald-500/10">
-        <h3 className="text-[10px] font-mono text-emerald-500 uppercase mb-4 tracking-[0.2em] flex items-center gap-2">
-           <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-           Research_Status_Log
-        </h3>
-        <p className="text-sm text-slate-300 leading-relaxed italic">
-          {state.stage === GameStage.ORIENTATION ? 
-            "Investigator orientation required. Complete the root node to verify your methodological alignment." :
-            state.stage === GameStage.FIELD_RESEARCH ? 
-            "Matrix stabilized. Field research phase active. Coordinate with remaining Knowledge Nodes." :
-            "Matrix integrity at maximum. Final synthesis sequence initiated."}
-        </p>
-      </section>
-
-      {state.stage === GameStage.ORIENTATION ? (
-        <section className="glass-panel p-10 rounded text-center flex flex-col items-center gap-6 border-emerald-500/20">
-           <div className="w-16 h-16 border border-emerald-500/30 rounded-full flex items-center justify-center">
-              <span className="text-emerald-500 text-2xl font-mono">!</span>
-           </div>
-           <div className="space-y-1">
-             <h3 className="text-lg font-bold text-white uppercase tracking-wider">LOCKED_MATRIX</h3>
-             <p className="text-[10px] text-slate-500 font-mono uppercase">Initialize orientation sequence to unlock research map</p>
-           </div>
-           <button 
-             onClick={onStartStation}
-             className="w-full max-w-sm bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded transition-all uppercase tracking-widest text-xs"
-           >
-             Stabilize_Orientation: {station?.title}
-           </button>
-        </section>
-      ) : (
-        <section className="grid md:grid-cols-2 gap-8 items-center">
-          <div className="relative glass-panel rounded overflow-hidden aspect-square border-slate-800 bg-slate-900/40">
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10">
-              <div className="w-full h-full" style={{ backgroundImage: 'radial-gradient(circle, #10b981 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
-            </div>
-
-            {state.route.map((id, index) => {
-              const s = STATIONS[id];
-              const isCompleted = !!state.stationProgress[id]?.completedAt;
-              const isCurrent = index === state.currentStationIndex;
-              
-              return (
-                <div key={id} className="absolute transition-all duration-700" style={{ left: `${s.x}%`, top: `${s.y}%`, transform: 'translate(-50%, -50%)' }}>
-                  <div 
-                    onClick={() => isCurrent && onStartStation()}
-                    className={`
-                    relative w-8 h-8 rounded border flex items-center justify-center text-[9px] font-mono font-bold transition-all
-                    ${isCompleted ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 
-                      isCurrent ? 'bg-emerald-500 border-white text-white shadow-[0_0_15px_#10b981] animate-pulse cursor-pointer hover:scale-110' : 
-                      'bg-slate-900 border-slate-800 text-slate-700'}
-                  `}>
-                    {index + 1}
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Left: Inventory & Tools */}
+        <div className="lg:col-span-1 space-y-4">
+           <div className="vault-panel p-5">
+              <h3 className="text-xs font-bold mb-4 uppercase border-b border-[#ffb000]/30 pb-2">Tool Collection</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {['Cardinal Compass', 'Technical Decryptor', 'Censorship Bypass', 'Spirit Lens', 'Mnemonic Charm'].map(tool => (
+                  <div key={tool} className={`text-[9px] p-2 border flex items-center justify-center text-center leading-tight ${state.earnedTools.includes(tool) ? 'bg-[#ffb000] text-black border-white' : 'border-[#ffb000]/20 opacity-40'}`}>
+                    {tool}
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                ))}
+              </div>
+           </div>
 
-          <div className="space-y-6">
-            <div className="space-y-2">
-               <h4 className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Active_Objective</h4>
-               {station ? (
-                 <div className="glass-panel p-6 rounded border-emerald-500/20">
-                   <h5 className="text-xl font-bold text-white mb-2">{station.title}</h5>
-                   <p className="text-xs text-slate-400 mb-6 leading-relaxed">{station.coreIdea}</p>
-                   <button onClick={onStartStation} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded btn-lab">Uplink_Node</button>
-                 </div>
-               ) : (
-                 <div className="glass-panel p-6 rounded border-emerald-500/20 text-center">
-                   <p className="text-emerald-400 font-bold uppercase text-sm mb-4 tracking-widest">Mission_Complete</p>
-                   <button onClick={onShowSubmission} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded btn-lab">Seal_Dossier</button>
-                 </div>
-               )}
-            </div>
+           <div className="vault-panel p-5 bg-black/40">
+              <h4 className="text-[10px] font-bold uppercase mb-2 text-[#ffb000]/50">Communication Log</h4>
+              <div className="terminal-scrollbar max-h-40 overflow-y-auto space-y-1 font-mono text-[9px] opacity-60">
+                 {state.log.slice().reverse().map((l, i) => (
+                   <p key={i}>> {new Date(l.t).toLocaleTimeString()}: {l.type} - Data Pack {i + 1} Ready</p>
+                 ))}
+              </div>
+           </div>
+        </div>
 
-            <div className="glass-panel p-4 rounded border-slate-800 font-mono text-[9px] text-slate-500 space-y-2">
-               <p className="uppercase text-slate-400 border-b border-slate-800 pb-1 mb-2">Internal_Comms</p>
-               {state.log.slice(-3).reverse().map((l, i) => (
-                 <p key={i}><span className="text-emerald-900">[{new Date(l.t).toLocaleTimeString()}]</span> {l.type} >> STATUS_OK</p>
-               ))}
-            </div>
-          </div>
-        </section>
+        {/* Right: Map Terminal */}
+        <div className="lg:col-span-2 vault-panel p-2 relative min-h-[500px] overflow-hidden bg-black/50">
+           <div className="absolute inset-0 opacity-10 pointer-events-none" style={{backgroundImage: 'linear-gradient(#ffb000 1px, transparent 1px), linear-gradient(90deg, #ffb000 1px, transparent 1px)', backgroundSize: '40px 40px'}}></div>
+           
+           {state.route.map((id) => {
+             const s = STATIONS[id];
+             const isCompleted = !!state.stationProgress[id]?.completedAt;
+             const hasBenefit = s.benefitFromTool && state.earnedTools.includes(s.benefitFromTool);
+
+             return (
+               <div 
+                key={id} 
+                className="absolute transform -translate-x-1/2 -translate-y-1/2 group"
+                style={{left: `${s.x}%`, top: `${s.y}%`}}
+               >
+                 <button 
+                  onClick={() => onStartStation(id)}
+                  className={`relative w-12 h-12 flex items-center justify-center transition-all ${isCompleted ? 'text-white' : 'text-[#ffb000] hover:scale-125'}`}
+                 >
+                   <svg viewBox="0 0 100 100" className={`absolute inset-0 w-full h-full ${isCompleted ? 'fill-green-600' : 'fill-transparent stroke-current stroke-2'}`}>
+                     <rect x="10" y="10" width="80" height="80" transform="rotate(45 50 50)" />
+                   </svg>
+                   <span className="relative z-10 text-[10px] font-bold uppercase">
+                     {isCompleted ? '✓' : id.substring(0, 2)}
+                   </span>
+                   
+                   {/* Tool Tip */}
+                   <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-32 bg-black border border-[#ffb000] p-2 text-[9px] opacity-0 group-hover:opacity-100 z-50 pointer-events-none transition-opacity uppercase text-center">
+                     <p className="font-bold mb-1">{s.title}</p>
+                     <p className="opacity-60">{s.coreIdea}</p>
+                     {hasBenefit && <p className="text-green-400 mt-1 font-bold">Tool Bonus Active</p>}
+                   </div>
+
+                   {hasBenefit && !isCompleted && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
+                   )}
+                 </button>
+               </div>
+             );
+           })}
+
+           <div className="absolute bottom-4 right-4 text-[9px] font-mono opacity-30 text-right uppercase">
+              Field Map 0.4.2<br/>Select node to begin recovery
+           </div>
+        </div>
+      </div>
+
+      {!isDossierUnlocked && (
+        <div className="text-[10px] font-mono text-center uppercase tracking-widest opacity-40 animate-pulse">
+           Stabilization protocol active. Dossier export locked until system integrity confirmed.
+        </div>
       )}
     </div>
   );

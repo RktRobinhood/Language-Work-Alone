@@ -5,7 +5,7 @@ import { STATIONS, PUZZLES, UPGRADES } from './constants';
 import { SeededRNG } from './utils/rng';
 import { sfx } from './utils/sfx';
 
-// Helper components
+// Components
 import Layout from './components/Layout';
 import StationView from './components/StationView';
 import PuzzleModal from './components/PuzzleModal';
@@ -13,47 +13,51 @@ import MissionHub from './components/MissionHub';
 import SubmissionPack from './components/SubmissionPack';
 import TerminalUpgrades from './components/TerminalUpgrades';
 
-const STORAGE_KEY = 'tok_lang_lab_clinical_v1';
+const STORAGE_KEY = 'vault_tok_v2_final';
+const MIN_WORK_TIME = 50 * 60; // 50 Minutes in seconds
+const REVEAL_DATE = 1737279000000; // Jan 19, 2026, 10:30 AM CET
 
 const App: React.FC = () => {
   const [state, setState] = useState<GameState | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'station' | 'submission' | 'upgrades'>('dashboard');
   const [showPuzzle, setShowPuzzle] = useState(false);
   const [currentPuzzle, setCurrentPuzzle] = useState(PUZZLES[0]);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isDossierUnlocked, setIsDossierUnlocked] = useState(false);
 
   useEffect(() => {
+    console.log("Vault App Mounting...");
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
+        console.log("Loading saved vault state", parsed);
         setState(parsed);
       } catch (e) {
+        console.error("Corruption in vault data, resetting...", e);
         createNewSession();
       }
     } else {
       createNewSession();
     }
-    setIsInitialized(true);
   }, []);
 
   const createNewSession = () => {
     const seed = `${Math.random().toString(36).substring(7)}-${Date.now()}`;
     const rng = new SeededRNG(seed);
     const allIds = Object.keys(STATIONS) as StationId[];
-    const route = rng.shuffle(allIds).slice(0, 6); 
 
     const initialState: GameState = {
       seed,
-      stage: GameStage.ORIENTATION,
+      stage: GameStage.FIELD_RESEARCH,
       totalActiveTime: 0,
-      route,
-      currentStationIndex: 0,
+      route: allIds,
+      earnedTools: [],
+      currentStationId: null,
       stationProgress: {},
       xp: 0,
       clearanceLevel: 1,
       dataIntegrity: 100,
-      log: [{ t: Date.now(), type: 'SESSION_INITIALIZED', payload: { seed } }],
+      log: [{ t: Date.now(), type: 'BOOT_SEQUENCE', payload: { vault: '76-TOK' } }],
       unlockedUpgrades: []
     };
     
@@ -67,91 +71,93 @@ const App: React.FC = () => {
       setState(prev => {
         if (!prev) return null;
         const updated = { ...prev, totalActiveTime: prev.totalActiveTime + 1 };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        
+        // Save every 5 seconds to reduce wear but keep progress safe
+        if (updated.totalActiveTime % 5 === 0) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        }
+
+        // Logic for unlocking the hidden Dossier
+        const isTimeMet = updated.totalActiveTime >= MIN_WORK_TIME;
+        const isDateMet = Date.now() >= REVEAL_DATE;
+        if ((isTimeMet || isDateMet) && !isDossierUnlocked) {
+          setIsDossierUnlocked(true);
+        }
+
+        // Random Vault Malfunctions (Puzzle triggers)
+        if (Math.random() < 0.001 && activeTab === 'dashboard' && !showPuzzle) {
+          setCurrentPuzzle(PUZZLES[Math.floor(Math.random() * PUZZLES.length)]);
+          setShowPuzzle(true);
+        }
+
         return updated;
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [state]);
+  }, [state, activeTab, isDossierUnlocked, showPuzzle]);
 
   const addLog = useCallback((type: string, payload: any) => {
     setState(prev => {
       if (!prev) return null;
-      const newLog: LogEntry = { t: Date.now(), type, payload };
-      return { ...prev, log: [...prev.log.slice(-10), newLog] };
+      return { ...prev, log: [...prev.log.slice(-15), { t: Date.now(), type, payload }] };
     });
   }, []);
+
+  const handleStartStation = (id: StationId) => {
+    sfx.scan();
+    setState(prev => prev ? ({ ...prev, currentStationId: id }) : null);
+    setActiveTab('station');
+  };
 
   const handleCompleteStation = (stationId: StationId, answers: number[], draft: string, score: number) => {
     sfx.confirm();
     setState(prev => {
       if (!prev) return null;
-      const xpGain = 400 * (prev.unlockedUpgrades.includes('signal_boost') ? 1.2 : 1);
-      const newXp = prev.xp + Math.floor(xpGain);
-      const newClearance = Math.floor(newXp / 1200) + 1;
+      const boost = prev.unlockedUpgrades.includes('pip_boy') ? 1.15 : 1;
+      const xpGain = 500 * boost;
       
-      const nextIndex = prev.currentStationIndex + 1;
-      const nextStage = nextIndex >= prev.route.length ? GameStage.FINAL_SYNTHESIS : 
-                        prev.stage === GameStage.ORIENTATION ? GameStage.FIELD_RESEARCH : prev.stage;
+      const station = STATIONS[stationId];
+      const newTools = [...prev.earnedTools];
+      if (station.rewardTool && !newTools.includes(station.rewardTool)) {
+        newTools.push(station.rewardTool);
+      }
 
       return {
         ...prev,
-        stage: nextStage,
-        xp: newXp,
-        clearanceLevel: newClearance,
+        xp: prev.xp + Math.floor(xpGain),
+        earnedTools: newTools,
         stationProgress: {
           ...prev.stationProgress,
-          [stationId]: { completedAt: Date.now(), draft, failedAttempts: prev.stationProgress[stationId]?.failedAttempts || 0 }
+          [stationId]: { completedAt: Date.now(), draft, failedAttempts: 0, startTime: Date.now() }
         },
-        currentStationIndex: nextIndex
+        currentStationId: null,
+        clearanceLevel: Math.floor((prev.xp + xpGain) / 1000) + 1
       };
     });
-    
-    addLog('NODE_SECURED', { id: stationId });
+    addLog('STABILIZED', { node: stationId });
     setActiveTab('dashboard');
   };
 
-  const buyUpgrade = (id: string, cost: number) => {
-    setState(prev => {
-      if (!prev || prev.xp < cost) return prev;
-      sfx.confirm();
-      return {
-        ...prev,
-        xp: prev.xp - cost,
-        unlockedUpgrades: [...prev.unlockedUpgrades, id],
-        dataIntegrity: id === 'data_integrity' ? Math.min(100, prev.dataIntegrity + 20) : prev.dataIntegrity
-      };
-    });
-  };
-
-  if (!isInitialized || !state) {
-    return (
-      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-12">
-        <div className="flex flex-col items-center gap-4">
-           <div className="w-12 h-12 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-           <p className="font-mono text-emerald-500 text-xs tracking-widest uppercase animate-pulse">Initializing Lab Interface...</p>
-        </div>
-      </div>
-    );
-  }
+  if (!state) return null;
 
   return (
     <Layout state={state} onNav={setActiveTab} activeTab={activeTab}>
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-4 py-6">
         {activeTab === 'dashboard' && (
           <MissionHub 
             state={state} 
-            onStartStation={() => { sfx.scan(); setActiveTab('station'); }} 
-            onShowUpgrades={() => { sfx.scan(); setActiveTab('upgrades'); }}
-            onShowSubmission={() => { sfx.scan(); setActiveTab('submission'); }}
+            onStartStation={handleStartStation} 
+            onShowUpgrades={() => setActiveTab('upgrades')}
+            onShowSubmission={() => setActiveTab('submission')}
+            isDossierUnlocked={isDossierUnlocked}
           />
         )}
         
-        {activeTab === 'station' && state.currentStationIndex < state.route.length && (
+        {activeTab === 'station' && state.currentStationId && (
           <StationView 
-            station={STATIONS[state.route[state.currentStationIndex]]}
+            station={STATIONS[state.currentStationId]}
             onComplete={handleCompleteStation}
-            onCancel={() => { sfx.error(); setActiveTab('dashboard'); }}
+            onCancel={() => { sfx.error(); setState(prev => prev ? ({ ...prev, currentStationId: null }) : null); setActiveTab('dashboard'); }}
             state={state}
             onLog={addLog}
           />
@@ -160,13 +166,16 @@ const App: React.FC = () => {
         {activeTab === 'upgrades' && (
           <TerminalUpgrades 
             state={state} 
-            onBuy={buyUpgrade} 
-            onBack={() => { sfx.beep(300, 0.05); setActiveTab('dashboard'); }} 
+            onBuy={(id, cost) => {
+              setState(prev => prev ? ({ ...prev, xp: prev.xp - cost, unlockedUpgrades: [...prev.unlockedUpgrades, id] }) : null);
+              sfx.confirm();
+            }} 
+            onBack={() => setActiveTab('dashboard')} 
           />
         )}
 
         {activeTab === 'submission' && (
-          <SubmissionPack state={state} onBack={() => { sfx.beep(300, 0.05); setActiveTab('dashboard'); }} />
+          <SubmissionPack state={state} onBack={() => setActiveTab('dashboard')} />
         )}
       </div>
 
@@ -175,7 +184,15 @@ const App: React.FC = () => {
           puzzle={currentPuzzle} 
           onClose={(success) => {
             setShowPuzzle(false);
-            if (success) sfx.confirm(); else sfx.error();
+            if (success) {
+              sfx.confirm();
+              setState(prev => prev ? ({ ...prev, xp: prev.xp + 100 }) : null);
+              addLog('PUZZLE_RESOLVED', { id: currentPuzzle.id });
+            } else {
+              sfx.error();
+              setState(prev => prev ? ({ ...prev, dataIntegrity: Math.max(0, prev.dataIntegrity - 5) }) : null);
+              addLog('PUZZLE_FAILED', { id: currentPuzzle.id });
+            }
           }}
         />
       )}

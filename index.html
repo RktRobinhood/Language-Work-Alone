@@ -4,80 +4,64 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOK Language Laboratory // Clinical Research</title>
+  <title>VAULT-TOK // LINGUISTIC STABILIZATION PROTOCOL</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     :root {
-      --lab-primary: #10b981; /* Emerald */
-      --lab-bg: #0f172a;
-      --lab-surface: #1e293b;
-      --lab-border: #334155;
+      --vault-amber: #ffb000;
+      --vault-green: #33ff33;
+      --vault-bg: #1a1a1a;
+      --vault-surface: #262626;
     }
     body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--lab-bg);
-      background-image: 
-        linear-gradient(rgba(16, 185, 129, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(16, 185, 129, 0.02) 1px, transparent 1px);
-      background-size: 50px 50px;
-      color: #f8fafc;
+      background-color: var(--vault-bg);
+      color: var(--vault-amber);
+      font-family: 'Share Tech Mono', monospace;
       margin: 0;
-      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
     }
-    .font-mono {
-      font-family: 'Space Mono', monospace;
+    .crt-text {
+      text-shadow: 0 0 5px var(--vault-amber);
     }
-    .glass-panel {
-      background: rgba(30, 41, 59, 0.7);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--lab-border);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    .vault-panel {
+      background: rgba(30, 30, 30, 0.9);
+      border: 2px solid var(--vault-amber);
+      box-shadow: inset 0 0 15px rgba(255, 176, 0, 0.2), 0 0 10px rgba(0, 0, 0, 0.5);
     }
-    .btn-lab {
-      @apply transition-all active:scale-95 disabled:opacity-30 uppercase tracking-widest font-bold text-xs;
+    .vault-btn {
+      @apply border-2 border-[#ffb000] px-4 py-2 uppercase font-bold transition-all hover:bg-[#ffb000] hover:text-[#1a1a1a] active:translate-y-1 disabled:opacity-30;
     }
-    @media print {
-      body { background: white; color: black; background-image: none; }
-      .no-print { display: none !important; }
-      .print-only { display: block !important; }
+    /* CRT Scanline Effect */
+    body::before {
+      content: " ";
+      display: block;
+      position: fixed;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      z-index: 1000;
+      background-size: 100% 3px, 3px 100%;
+      pointer-events: none;
     }
-    .print-only { display: none; }
-    
-    .video-container {
-      position: relative;
-      padding-bottom: 56.25%;
-      height: 0;
-      overflow: hidden;
-      border-radius: 4px;
-      background: #000;
-    }
-    .video-container iframe {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
-    
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(16, 185, 129, 0.2); border-radius: 10px; }
-
-    /* Scanline Effect */
+    /* Vignette */
     body::after {
       content: " ";
       display: block;
       position: fixed;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      right: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
-      z-index: 100;
-      background-size: 100% 2px, 3px 100%;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: radial-gradient(circle, transparent 60%, black 120%);
+      z-index: 1001;
       pointer-events: none;
     }
+    .video-container {
+      position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;
+      border: 2px solid var(--vault-amber);
+    }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; filter: sepia(0.5) contrast(1.2); }
+    
+    .terminal-scrollbar::-webkit-scrollbar { width: 8px; }
+    .terminal-scrollbar::-webkit-scrollbar-track { background: #000; }
+    .terminal-scrollbar::-webkit-scrollbar-thumb { background: var(--vault-amber); }
   </style>
 <script type="importmap">
 {

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Station, GameState } from '../types';
 import { sfx } from '../utils/sfx';
 
@@ -18,7 +18,17 @@ const StationView: React.FC<StationViewProps> = ({ station, onComplete, onCancel
   const [wrongAnswers, setWrongAnswers] = useState<Record<number, boolean>>({});
   const [draft, setDraft] = useState('');
 
-  const hasLogicProbe = state.unlockedUpgrades.includes('logic_probe');
+  const hasBenefit = station.benefitFromTool && state.earnedTools.includes(station.benefitFromTool);
+  const hasRadMask = state.unlockedUpgrades.includes('rad_mask');
+
+  // If they have the tool, we skip the first question for them as a reward
+  useEffect(() => {
+    if (step === 'checks' && hasBenefit && currentMCQ === 0) {
+      sfx.confirm();
+      setAnswers(prev => ({ ...prev, 0: station.mcqs[0].answerIndex }));
+      setCurrentMCQ(1);
+    }
+  }, [step, hasBenefit, currentMCQ, station.mcqs]);
 
   const handleMCQSubmit = (choice: number) => {
     const isCorrect = choice === station.mcqs[currentMCQ].answerIndex;
@@ -27,7 +37,6 @@ const StationView: React.FC<StationViewProps> = ({ station, onComplete, onCancel
       sfx.confirm();
       setAnswers(prev => ({ ...prev, [currentMCQ]: choice }));
       setWrongAnswers(prev => ({ ...prev, [currentMCQ]: false }));
-      
       if (currentMCQ < station.mcqs.length - 1) {
         setCurrentMCQ(currentMCQ + 1);
       } else {
@@ -36,50 +45,44 @@ const StationView: React.FC<StationViewProps> = ({ station, onComplete, onCancel
     } else {
       sfx.error();
       setWrongAnswers(prev => ({ ...prev, [currentMCQ]: true }));
-      onLog('PEDAGOGICAL_RETRY', { q: currentMCQ, id: station.id });
+      onLog('DATA_MISALIGNMENT', { node: station.id });
     }
   };
 
   return (
-    <div className="flex flex-col gap-6 animate-in slide-in-from-right-4 duration-500">
-      <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+    <div className="flex flex-col gap-6 animate-in slide-in-from-right-4 pb-20">
+      <div className="flex justify-between items-center border-b-2 border-[#ffb000] pb-4">
         <div>
-          <h2 className="text-2xl font-bold text-white uppercase tracking-tight">{station.title}</h2>
-          <div className="flex items-center gap-4 mt-1">
-             <span className="text-[9px] font-mono text-emerald-500 uppercase">Uplink_Active</span>
-             <div className="flex gap-1">
-                {[0, 1, 2].map(i => (
-                  <div key={i} className={`w-3 h-1 rounded-full ${step === 'material' ? 'bg-slate-800' : (step === 'synthesis' || i < currentMCQ) ? 'bg-emerald-500' : 'bg-slate-700'}`}></div>
-                ))}
-             </div>
-          </div>
+          <h2 className="text-3xl font-bold text-[#ffb000] uppercase tracking-tighter">{station.title}</h2>
+          <p className="text-[10px] font-mono text-[#ffb000]/60 uppercase mt-1">Recovery Phase: {step.toUpperCase()}</p>
         </div>
-        <button onClick={onCancel} className="text-[9px] font-mono text-slate-500 hover:text-white uppercase px-3 py-1.5 border border-slate-800 rounded transition-all">Abort_Research</button>
+        <button onClick={onCancel} className="vault-btn text-[10px]">Cancel Link</button>
       </div>
 
       {step === 'material' && (
         <div className="flex flex-col gap-6">
-          <div className="video-container shadow-xl border border-slate-800">
+          <div className="vault-panel p-5 bg-black/40">
+             <h3 className="text-xs font-bold text-[#ffb000] uppercase mb-2">Lesson Plan</h3>
+             <p className="text-[10px] opacity-70 italic">{station.lessonPlan}</p>
+          </div>
+
+          <div className="video-container shadow-xl">
             <iframe 
-              src={`https://www.youtube.com/embed/${station.youtubeId}?modestbranding=1&rel=0&autoplay=0`}
-              title="Research_Source"
+              src={`https://www.youtube.com/embed/${station.youtubeId}?modestbranding=1&rel=0`}
+              title="Vault Education Broadcast"
               frameBorder="0"
               allowFullScreen
             ></iframe>
           </div>
           
-          <div className="glass-panel p-6 rounded border-slate-800">
-             <h3 className="text-[10px] font-mono font-bold text-emerald-500 uppercase mb-4 tracking-widest flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-                Research_Summary_v1.0
-             </h3>
-             <p className="text-sm text-slate-300 leading-relaxed font-medium">
+          <div className="vault-panel p-8 bg-black/40">
+             <p className="text-base text-[#ffb000]/90 leading-relaxed font-mono whitespace-pre-wrap">
                {station.reading}
              </p>
           </div>
 
-          <button onClick={() => { sfx.scan(); setStep('checks'); }} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded btn-lab shadow-lg shadow-emerald-900/10">
-            Verify_Knowledge_Alignment
+          <button onClick={() => { sfx.scan(); setStep('checks'); }} className="vault-btn py-5 text-lg">
+             Begin Knowledge Check
           </button>
         </div>
       )}
@@ -87,73 +90,66 @@ const StationView: React.FC<StationViewProps> = ({ station, onComplete, onCancel
       {step === 'checks' && (
         <div className="flex flex-col gap-8">
           <div className="text-center">
-             <h3 className="text-[10px] font-mono text-emerald-500 uppercase font-bold tracking-[0.3em]">Validation_Check {currentMCQ + 1}/{station.mcqs.length}</h3>
-             <p className="text-[9px] text-slate-500 mt-1 uppercase">Pedagogical feedback loop active</p>
+             <h3 className="text-xs font-bold text-[#ffb000] uppercase tracking-[0.3em]">Validation Step {currentMCQ + 1} of 3</h3>
+             {hasBenefit && <p className="text-[9px] text-green-400 font-bold uppercase mt-1 animate-pulse">Tool Bonus: Knowledge Pre-Validated</p>}
           </div>
 
-          <div className="glass-panel p-8 rounded border-slate-800">
-            <p className="font-bold text-white mb-8 text-lg">{station.mcqs[currentMCQ].question}</p>
+          <div className="vault-panel p-8">
+            <p className="text-xl font-bold text-white mb-8 border-b border-[#ffb000]/20 pb-4">{station.mcqs[currentMCQ].question}</p>
             
             <div className="flex flex-col gap-3">
               {station.mcqs[currentMCQ].options.map((opt, oIdx) => {
-                const isSelected = answers[currentMCQ] === oIdx;
-                const isWrong = wrongAnswers[currentMCQ] && oIdx !== station.mcqs[currentMCQ].answerIndex;
-                const isCorrectOption = oIdx === station.mcqs[currentMCQ].answerIndex;
-
+                const isEliminated = hasRadMask && oIdx !== station.mcqs[currentMCQ].answerIndex && oIdx === 0;
                 return (
                   <button
                     key={oIdx}
+                    disabled={isEliminated}
                     onClick={() => handleMCQSubmit(oIdx)}
-                    className={`text-left p-4 rounded text-xs border transition-all relative overflow-hidden group ${
-                      isSelected ? 'bg-emerald-500/10 border-emerald-500 text-emerald-200' : 
-                      'bg-slate-900/50 border-slate-800 text-slate-400 hover:border-slate-700'
+                    className={`text-left p-4 border-2 transition-all uppercase text-sm font-bold ${
+                      isEliminated ? 'opacity-10 grayscale pointer-events-none' :
+                      'border-[#ffb000]/30 text-[#ffb000]/70 hover:bg-[#ffb000] hover:text-black'
                     }`}
                   >
-                    <div className="flex items-center justify-between relative z-10">
-                      <span><span className="font-mono text-[9px] mr-4 opacity-40">[{String.fromCharCode(65 + oIdx)}]</span> {opt}</span>
-                    </div>
+                    {opt}
                   </button>
                 );
               })}
             </div>
 
             {wrongAnswers[currentMCQ] && (
-               <div className="mt-6 p-4 bg-red-500/5 border border-red-500/20 rounded animate-in fade-in slide-in-from-top-2">
-                  <p className="text-[10px] font-mono text-red-400 uppercase font-bold tracking-widest mb-1">Misalignment_Detected</p>
-                  <p className="text-[11px] text-slate-400">RESEARCH HINT: Review the research summary. Pay close attention to the specific TOK methods or ethics mentioned.</p>
+               <div className="mt-8 p-6 bg-red-900/20 border-2 border-red-500/50 rounded animate-in fade-in slide-in-from-top-2">
+                  <p className="text-xs font-bold text-red-500 uppercase mb-2">Integrity Alert</p>
+                  <p className="text-sm text-red-200">PEDAGOGICAL HINT: Look back at the broadcast text for keywords like "Ethics", "Group", or "Shared Knowledge". Precise conceptual mapping is required.</p>
                </div>
             )}
           </div>
 
-          <button onClick={() => setStep('material')} className="text-center text-[9px] font-mono text-slate-500 uppercase hover:text-emerald-500 transition-all underline underline-offset-4 tracking-widest">
-            Re-review_Source_Material
+          <button onClick={() => setStep('material')} className="text-center text-[10px] font-bold uppercase opacity-50 hover:opacity-100 underline underline-offset-4">
+            Return to Broadcast
           </button>
         </div>
       )}
 
       {step === 'synthesis' && (
         <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4">
-          <div className="glass-panel p-6 rounded border-emerald-500/20 bg-emerald-500/5">
-            <h3 className="text-[10px] font-mono font-bold text-emerald-500 uppercase mb-3 tracking-widest">Synthesis_Prompt</h3>
-            <p className="text-sm font-medium text-white italic">"{station.deliverablePrompt}"</p>
+          <div className="vault-panel p-8 bg-[#ffb000]/5 border-[#ffb000]/50">
+            <h4 className="text-[10px] font-bold text-[#ffb000] uppercase mb-4 tracking-widest">Final Synthesis Directive</h4>
+            <p className="text-xl font-bold text-white italic">"{station.deliverablePrompt}"</p>
           </div>
           <div className="relative">
             <textarea 
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Enter researcher synthesis here... (Min 50 chars)"
-              className="w-full h-56 bg-slate-900/80 border border-slate-800 rounded p-6 text-sm font-mono focus:border-emerald-500 outline-none text-slate-200"
+              placeholder="Record your findings for the archives..."
+              className="w-full h-72 bg-black/80 border-2 border-[#ffb000]/30 rounded p-8 text-base font-mono focus:border-[#ffb000] outline-none text-[#ffb000] placeholder:opacity-20"
             />
-            <div className="absolute bottom-4 right-4 text-[8px] font-mono text-slate-600">
-               BUFFER_LOAD: {draft.length}
-            </div>
           </div>
           <button 
-            onClick={() => onComplete(station.id, Object.values(answers), draft, 100)} 
+            onClick={() => onComplete(station.id, [], draft, 100)} 
             disabled={draft.length < 50} 
-            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded btn-lab shadow-xl shadow-emerald-900/20"
+            className="w-full vault-btn py-5 text-xl"
           >
-            Archive_Synthesis_Report
+            Seal Node Archive
           </button>
         </div>
       )}

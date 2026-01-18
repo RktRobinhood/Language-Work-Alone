@@ -17,8 +17,7 @@ export enum StationId {
 export enum GameStage {
   ORIENTATION = 'orientation',
   FIELD_RESEARCH = 'field_research',
-  FINAL_SYNTHESIS = 'final_synthesis',
-  ARCHIVED = 'archived'
+  FINAL_SYNTHESIS = 'final_synthesis'
 }
 
 export interface MCQ {
@@ -37,6 +36,9 @@ export interface Station {
   deliverablePrompt: string;
   x: number;
   y: number;
+  rewardTool?: string;
+  benefitFromTool?: string;
+  lessonPlan: string;
 }
 
 export interface LogEntry {
@@ -50,7 +52,8 @@ export interface GameState {
   stage: GameStage;
   totalActiveTime: number;
   route: StationId[];
-  currentStationIndex: number;
+  earnedTools: string[];
+  currentStationId: StationId | null;
   stationProgress: Record<string, {
     startTime: number;
     completedAt?: number;
@@ -66,7 +69,8 @@ export interface GameState {
 
 export interface Puzzle {
   id: string;
-  type: 'cipher' | 'pattern' | 'match';
+  type: 'cipher' | 'pattern' | 'match' | 'anagram';
   prompt: string;
   solution: string;
+  reward: string;
 }
