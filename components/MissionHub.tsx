@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { GameState, StationId } from '../types';
 import { STATIONS } from '../constants';
@@ -13,98 +12,109 @@ interface MissionHubProps {
 
 const MissionHub: React.FC<MissionHubProps> = ({ state, onStartStation, onShowUpgrades, onShowSubmission, isDossierUnlocked }) => {
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in duration-500">
-      <div className="border-b-2 border-[#ffb000] pb-4 flex justify-between items-end">
+    <div className="flex flex-col gap-6 md:gap-8 animate-in fade-in duration-500">
+      <div className="border-b-2 border-[#ffb000] pb-6 flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-          <h2 className="text-4xl font-bold crt-text mb-1 uppercase tracking-tighter">Vault Communications Hub</h2>
-          <div className="flex gap-4 text-[11px] font-mono text-[#ffb000]/70 uppercase">
+          <h2 className="text-3xl md:text-4xl font-bold crt-text mb-1 uppercase tracking-tighter">Vault Communications Hub</h2>
+          <div className="flex flex-wrap gap-2 md:gap-4 text-[10px] md:text-[11px] font-mono text-[#ffb000]/60 uppercase">
              <span>Vault: 76-TOK</span>
-             <span>Status: {state.dataIntegrity > 50 ? 'Stable' : 'Unstable'}</span>
-             <span>Active Nodes: {Object.keys(state.stationProgress).length} / {state.route.length}</span>
+             <span>ID: {state.seed.substring(0, 8)}</span>
+             <span>Nodes Found: {state.discoveredNodes.length} / {Object.keys(STATIONS).length}</span>
+             <span>Stability: {state.dataIntegrity}%</span>
           </div>
         </div>
-        <div className="flex gap-2">
-           <button onClick={onShowUpgrades} className="vault-btn text-[10px]">Shop Upgrades</button>
+        <div className="flex gap-2 w-full md:w-auto">
+           <button onClick={onShowUpgrades} className="vault-btn text-[9px] flex-1">Shop Upgrades</button>
            {isDossierUnlocked && (
-              <button onClick={onShowSubmission} className="vault-btn text-[10px] bg-[#ffb000] text-black">Export Dossier</button>
+              <button onClick={onShowSubmission} className="vault-btn text-[9px] flex-1 bg-[#ffb000] text-[#0a0a0a]">Export Dossier</button>
            )}
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Left: Inventory & Tools */}
-        <div className="lg:col-span-1 space-y-4">
+      <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
+        {/* Inventory & Tools */}
+        <div className="lg:col-span-1 space-y-6">
            <div className="vault-panel p-5">
-              <h3 className="text-xs font-bold mb-4 uppercase border-b border-[#ffb000]/30 pb-2">Tool Collection</h3>
+              <h3 className="text-xs font-bold mb-4 uppercase border-b border-[#ffb000]/30 pb-2">Technical Inventory</h3>
               <div className="grid grid-cols-2 gap-2">
-                {['Cardinal Compass', 'Technical Decryptor', 'Censorship Bypass', 'Spirit Lens', 'Mnemonic Charm'].map(tool => (
-                  <div key={tool} className={`text-[9px] p-2 border flex items-center justify-center text-center leading-tight ${state.earnedTools.includes(tool) ? 'bg-[#ffb000] text-black border-white' : 'border-[#ffb000]/20 opacity-40'}`}>
-                    {tool}
-                  </div>
-                ))}
+                {['Compass of Relativity', 'Animacy Lens', 'Technical Decryptor', 'Censorship Bypass', 'Universal Key', 'Nuance Filter', 'Mnemonic Rhythm', 'Archive Key', 'Etiquette Manual', 'Map Overlay', 'Diagnostic Patch', 'Irony Detector'].map(tool => {
+                  const hasIt = state.earnedTools.includes(tool);
+                  return (
+                    <div key={tool} className={`text-[9px] p-2 border flex items-center justify-center text-center leading-tight transition-all duration-700 ${hasIt ? 'bg-[#ffb000] text-[#0a0a0a] border-white' : 'border-[#ffb000]/10 opacity-10'}`}>
+                      {tool}
+                    </div>
+                  );
+                })}
               </div>
            </div>
 
-           <div className="vault-panel p-5 bg-black/40">
-              <h4 className="text-[10px] font-bold uppercase mb-2 text-[#ffb000]/50">Communication Log</h4>
-              <div className="terminal-scrollbar max-h-40 overflow-y-auto space-y-1 font-mono text-[9px] opacity-60">
+           <div className="vault-panel p-5 bg-black/40 hidden md:block">
+              <h4 className="text-[10px] font-bold uppercase mb-3 text-[#ffb000]/40">Internal Communications</h4>
+              <div className="terminal-scrollbar max-h-40 overflow-y-auto space-y-1.5 font-mono text-[9px] opacity-60">
                  {state.log.slice().reverse().map((l, i) => (
-                   <p key={i}>> {new Date(l.t).toLocaleTimeString()}: {l.type} - Data Pack {i + 1} Ready</p>
+                   <p key={i}>> {new Date(l.t).toLocaleTimeString()}: {l.type}</p>
                  ))}
               </div>
            </div>
         </div>
 
-        {/* Right: Map Terminal */}
-        <div className="lg:col-span-2 vault-panel p-2 relative min-h-[500px] overflow-hidden bg-black/50">
-           <div className="absolute inset-0 opacity-10 pointer-events-none" style={{backgroundImage: 'linear-gradient(#ffb000 1px, transparent 1px), linear-gradient(90deg, #ffb000 1px, transparent 1px)', backgroundSize: '40px 40px'}}></div>
+        {/* Map - Fog of War logic */}
+        <div className="lg:col-span-2 vault-panel p-2 relative min-h-[450px] md:min-h-[550px] overflow-hidden bg-black/80">
+           {/* Map Grid Background */}
+           <div className="absolute inset-0 opacity-5 pointer-events-none" style={{backgroundImage: 'linear-gradient(#ffb000 1px, transparent 1px), linear-gradient(90deg, #ffb000 1px, transparent 1px)', backgroundSize: '50px 50px'}}></div>
            
-           {state.route.map((id) => {
-             const s = STATIONS[id];
-             const isCompleted = !!state.stationProgress[id]?.completedAt;
+           {Object.values(STATIONS).map((s) => {
+             const isDiscovered = state.discoveredNodes.includes(s.id);
+             const isCompleted = !!state.stationProgress[s.id]?.completedAt;
              const hasBenefit = s.benefitFromTool && state.earnedTools.includes(s.benefitFromTool);
+
+             // Hidden node
+             if (!isDiscovered) return (
+                <div key={s.id} className="absolute w-1.5 h-1.5 bg-[#ffb000]/10 rounded-full transform -translate-x-1/2 -translate-y-1/2" style={{left: `${s.x}%`, top: `${s.y}%`}}></div>
+             );
 
              return (
                <div 
-                key={id} 
+                key={s.id} 
                 className="absolute transform -translate-x-1/2 -translate-y-1/2 group"
                 style={{left: `${s.x}%`, top: `${s.y}%`}}
                >
                  <button 
-                  onClick={() => onStartStation(id)}
-                  className={`relative w-12 h-12 flex items-center justify-center transition-all ${isCompleted ? 'text-white' : 'text-[#ffb000] hover:scale-125'}`}
+                  onClick={() => onStartStation(s.id)}
+                  className={`relative w-12 h-12 md:w-14 md:h-14 flex items-center justify-center transition-all duration-300 ${isCompleted ? 'scale-90 opacity-40' : 'hover:scale-125 node-active'}`}
                  >
-                   <svg viewBox="0 0 100 100" className={`absolute inset-0 w-full h-full ${isCompleted ? 'fill-green-600' : 'fill-transparent stroke-current stroke-2'}`}>
-                     <rect x="10" y="10" width="80" height="80" transform="rotate(45 50 50)" />
+                   <svg viewBox="0 0 100 100" className={`absolute inset-0 w-full h-full transition-colors ${isCompleted ? 'fill-green-900/50 stroke-green-500' : 'fill-transparent stroke-current stroke-2 text-[#ffb000]'}`}>
+                     <rect x="15" y="15" width="70" height="70" transform="rotate(45 50 50)" />
                    </svg>
-                   <span className="relative z-10 text-[10px] font-bold uppercase">
-                     {isCompleted ? '✓' : id.substring(0, 2)}
+                   <span className="relative z-10 text-[9px] md:text-[10px] font-bold uppercase crt-text">
+                     {isCompleted ? 'OK' : s.id.substring(0, 3)}
                    </span>
                    
-                   {/* Tool Tip */}
-                   <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-32 bg-black border border-[#ffb000] p-2 text-[9px] opacity-0 group-hover:opacity-100 z-50 pointer-events-none transition-opacity uppercase text-center">
-                     <p className="font-bold mb-1">{s.title}</p>
-                     <p className="opacity-60">{s.coreIdea}</p>
-                     {hasBenefit && <p className="text-green-400 mt-1 font-bold">Tool Bonus Active</p>}
+                   {/* Info Hover (hidden on tiny screens) */}
+                   <div className="hidden md:block absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 bg-[#0a0a0a] border border-[#ffb000] p-3 text-[10px] opacity-0 group-hover:opacity-100 z-50 pointer-events-none transition-opacity uppercase shadow-2xl">
+                     <p className="font-bold mb-1.5 border-b border-[#ffb000]/20 pb-1">{s.title}</p>
+                     <p className="opacity-70 normal-case mb-2 leading-tight">{s.coreIdea}</p>
+                     {s.rewardTool && <p className="text-cyan-500 text-[8px] mt-1 italic">Reward: {s.rewardTool}</p>}
+                     {hasBenefit && !isCompleted && <p className="text-green-400 text-[8px] mt-1 font-bold">Optimization Active</p>}
                    </div>
 
                    {hasBenefit && !isCompleted && (
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500/30 rounded-full animate-ping"></div>
                    )}
                  </button>
                </div>
              );
            })}
 
-           <div className="absolute bottom-4 right-4 text-[9px] font-mono opacity-30 text-right uppercase">
-              Field Map 0.4.2<br/>Select node to begin recovery
+           <div className="absolute bottom-6 left-6 text-[9px] md:text-[10px] font-mono opacity-20 uppercase tracking-[0.3em]">
+              Explorer Mode Active
            </div>
         </div>
       </div>
 
       {!isDossierUnlocked && (
-        <div className="text-[10px] font-mono text-center uppercase tracking-widest opacity-40 animate-pulse">
-           Stabilization protocol active. Dossier export locked until system integrity confirmed.
+        <div className="mt-4 md:mt-8 text-[10px] md:text-[11px] font-mono text-center uppercase tracking-widest opacity-30 animate-pulse px-4">
+           Complete 50 minutes of discovery to unlock final research dossier export.
         </div>
       )}
     </div>

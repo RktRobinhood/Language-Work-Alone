@@ -1,4 +1,3 @@
-
 export enum StationId {
   RELATIVITY = 'relativity',
   METAPHOR = 'metaphor',
@@ -15,7 +14,6 @@ export enum StationId {
 }
 
 export enum GameStage {
-  ORIENTATION = 'orientation',
   FIELD_RESEARCH = 'field_research',
   FINAL_SYNTHESIS = 'final_synthesis'
 }
@@ -38,6 +36,7 @@ export interface Station {
   y: number;
   rewardTool?: string;
   benefitFromTool?: string;
+  neighbors: StationId[];
   lessonPlan: string;
 }
 
@@ -51,7 +50,7 @@ export interface GameState {
   seed: string;
   stage: GameStage;
   totalActiveTime: number;
-  route: StationId[];
+  discoveredNodes: StationId[];
   earnedTools: string[];
   currentStationId: StationId | null;
   stationProgress: Record<string, {
