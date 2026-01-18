@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { Station, GameState, LogEntry, MCQ } from '../types.ts';
+import { Station, GameState, LogEntry, DilemmaChoice } from '../types.ts';
 import { sfx } from '../utils/sfx.ts';
 import DiceRoller from './DiceRoller.tsx';
 
 interface StationViewProps {
   station: Station;
-  onComplete: (id: any, roll: number, draft: string) => void;
+  onComplete: (id: any, roll: number, draft: string, finalDC: number, rewards: number) => void;
   onCancel: () => void;
   state: GameState;
   onUpdateState: (updater: (prev: GameState) => GameState) => void;
@@ -14,21 +14,20 @@ interface StationViewProps {
 }
 
 const StationView: React.FC<StationViewProps> = ({ station, onComplete, onCancel, state, onUpdateState, addLog }) => {
-  const [step, setStep] = useState<'reading' | 'validation' | 'synthesis' | 'rolling'>('reading');
+  const [step, setStep] = useState<'reading' | 'validation' | 'synthesis' | 'dilemma' | 'rolling'>('reading');
   const [currentMCQ, setCurrentMCQ] = useState(0);
   
-  // MCQ state with randomized options
   const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
   const [correctShuffledIndex, setCorrectShuffledIndex] = useState(0);
 
-  // Scaffold State
   const [draft, setDraft] = useState('');
   const [scaffoldData, setScaffoldData] = useState<Record<string, string>>({});
-
-  // Final draft construction for roll step
   const [finalDraft, setFinalDraft] = useState('');
+  
+  // RPG State
+  const [selectedDilemma, setSelectedDilemma] = useState<DilemmaChoice | null>(null);
+  const [finalDC, setFinalDC] = useState(station.difficultyDC);
 
-  // Handle MCQ randomization
   useEffect(() => {
     if (step === 'validation' && station.mcqs[currentMCQ]) {
       const mcq = station.mcqs[currentMCQ];
@@ -53,11 +52,11 @@ const StationView: React.FC<StationViewProps> = ({ station, onComplete, onCancel
     } else {
       sfx.error();
       onUpdateState(prev => ({ ...prev, integrity: Math.max(0, prev.integrity - 8) }));
-      addLog('ANOMALY', `Logic dissonance detected at ${station.title}. Stability compromised.`);
+      addLog('ANOMALY', `Logic paradox triggered at ${station.title}. Neural shielding at ${(state.integrity - 8)}%.`);
     }
   };
 
-  const handleGoToRoll = () => {
+  const handleGoToDilemma = () => {
     let constructed = draft;
     if (station.scaffoldType === 'claim-counter') {
       constructed = `CLAIM: ${scaffoldData.claim || 'N/A'}\nCOUNTER: ${scaffoldData.counter || 'N/A'}`;
@@ -67,13 +66,24 @@ const StationView: React.FC<StationViewProps> = ({ station, onComplete, onCancel
       constructed = `ETHICAL JUSTIFICATION: ${scaffoldData.justification || 'N/A'}\nEPISTEMIC RISK: ${scaffoldData.risk || 'N/A'}`;
     }
     setFinalDraft(constructed);
+    setStep('dilemma');
+  };
+
+  const handleDilemmaChoice = (choice: DilemmaChoice) => {
+    sfx.confirm();
+    setSelectedDilemma(choice);
+    setFinalDC(station.difficultyDC + choice.effect.dcMod);
+    if (choice.effect.integrityMod !== 0) {
+      onUpdateState(prev => ({ ...prev, integrity: Math.max(0, Math.min(100, prev.integrity + choice.effect.integrityMod)) }));
+    }
     setStep('rolling');
   };
 
   const isScaffoldValid = () => {
     if (station.scaffoldType === 'standard') return draft.length > 20;
-    const values = Object.values(scaffoldData) as string[];
-    return values.length > 0 && values.every(v => v.length > 10);
+    const values = Object.values(scaffoldData);
+    // Fixed: Explicitly typed 'v' as string to resolve the 'Property length does not exist on type unknown' error.
+    return values.length > 0 && values.every((v: string) => v.length > 10);
   };
 
   return (
@@ -164,10 +174,36 @@ const StationView: React.FC<StationViewProps> = ({ station, onComplete, onCancel
           </div>
         )}
 
+        {step === 'dilemma' && (
+          <div className="h-full flex flex-col justify-center space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="text-center space-y-2">
+              <span className="text-[8px] opacity-40 uppercase tracking-[0.4em]">Epistemic Crossroads</span>
+              <h2 className="text-xl font-bold uppercase tracking-tighter">Choose Your Approach</h2>
+              <p className="text-[10px] opacity-60 px-8 leading-relaxed">The final synthesis roll depends on your philosophical framing. High risk brings high reward.</p>
+            </div>
+            <div className="grid gap-4">
+              {station.dilemma.map((choice, i) => (
+                <button 
+                  key={i} 
+                  onClick={() => handleDilemmaChoice(choice)}
+                  className="group relative p-6 border-2 border-[#ffb000]/20 bg-[#ffb000]/5 hover:bg-[#ffb000]/20 hover:border-[#ffb000] transition-all text-left"
+                >
+                  <div className="text-xs font-bold uppercase mb-1">{choice.text}</div>
+                  <div className="text-[9px] opacity-60 leading-relaxed mb-3">{choice.flavor}</div>
+                  <div className="flex gap-4 text-[7px] font-mono uppercase">
+                    <span className={choice.effect.dcMod > 0 ? 'text-red-400' : 'text-green-400'}>DC {station.difficultyDC + choice.effect.dcMod}</span>
+                    <span className="text-cyan-400">Reward x{choice.effect.rewardMod}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {step === 'rolling' && (
           <DiceRoller 
-            dc={station.difficultyDC} 
-            onResult={(roll) => onComplete(station.id, roll, finalDraft)} 
+            dc={finalDC} 
+            onResult={(roll) => onComplete(station.id, roll, finalDraft, finalDC, selectedDilemma?.effect.rewardMod || 1.0)} 
           />
         )}
       </div>
@@ -177,7 +213,7 @@ const StationView: React.FC<StationViewProps> = ({ station, onComplete, onCancel
           <button onClick={() => { sfx.scan(); setStep('validation'); }} className="w-full py-4 bg-[#ffb000] text-black font-bold uppercase text-[11px] tracking-widest active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(255,176,0,0.3)]">Initiate Verification</button>
         )}
         {step === 'synthesis' && (
-          <button onClick={handleGoToRoll} disabled={!isScaffoldValid()} className="w-full py-4 bg-[#ffb000] text-black font-bold uppercase text-[11px] tracking-widest disabled:opacity-20 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(255,176,0,0.3)]">Stabilize Neural Trace</button>
+          <button onClick={handleGoToDilemma} disabled={!isScaffoldValid()} className="w-full py-4 bg-[#ffb000] text-black font-bold uppercase text-[11px] tracking-widest disabled:opacity-20 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(255,176,0,0.3)]">Stabilize Neural Trace</button>
         )}
       </div>
     </div>

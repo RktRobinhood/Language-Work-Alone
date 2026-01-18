@@ -25,6 +25,12 @@ export interface MCQ {
   answerIndex: number;
 }
 
+export interface DilemmaChoice {
+  text: string;
+  effect: { dcMod: number; rewardMod: number; integrityMod: number };
+  flavor: string;
+}
+
 export type ScaffoldType = 'claim-counter' | 'concept-map' | 'perspective-shift' | 'ethical-eval' | 'standard';
 
 export interface Station {
@@ -44,7 +50,8 @@ export interface Station {
   lessonPlan: string;
   fuelCost?: number;
   rationCost?: number;
-  difficultyDC: number; // For the dice roll check
+  difficultyDC: number;
+  dilemma: DilemmaChoice[];
 }
 
 export interface LogEntry {

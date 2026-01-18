@@ -14,7 +14,7 @@ import SubmissionPack from './components/SubmissionPack.tsx';
 import TerminalUpgrades from './components/TerminalUpgrades.tsx';
 import DeathScreen from './components/DeathScreen.tsx';
 
-const STORAGE_KEY = 'vault_tok_v7_dice';
+const STORAGE_KEY = 'vault_tok_v7_dice_final';
 const MIN_WORK_TIME = 50 * 60; 
 
 const App: React.FC = () => {
@@ -53,7 +53,7 @@ const App: React.FC = () => {
       integrity: 100,
       fuel: 100,
       rations: 20,
-      researchLog: [{ t: Date.now(), type: 'SYSTEM', msg: 'Neural Link Established. Research sequence initialized.' }],
+      researchLog: [{ t: Date.now(), type: 'SYSTEM', msg: 'Handshake successful. Neural interface online. ¡Bienvenidos al laboratorio!' }],
       unlockedUpgrades: []
     };
     
@@ -81,7 +81,8 @@ const App: React.FC = () => {
     if (state.integrity <= 0 && !showDeathScreen) {
       setShowDeathScreen(true);
       sfx.glitch();
-      addLog('ANOMALY', 'CRITICAL FAILURE: Researcher neural integrity reached 0%. Archives locked.');
+      addLog('ANOMALY', 'CRITICAL ERROR: Integridad neuronal en 0%. Synchronisation failed.');
+      addLog('ANOMALY', 'Signal intercepted: "L’enfer, c’est les autres... et les paradoxes."');
     }
   }, [state?.integrity, showDeathScreen, addLog]);
 
@@ -100,7 +101,18 @@ const App: React.FC = () => {
           setIsDossierUnlocked(true);
         }
 
-        // Random Anomalies (TOK Disruptions)
+        // Narrative Interjections
+        if (Math.random() < 0.0001 && activeTab === 'dashboard') {
+          const interjections = [
+            "Glitch found: 'No hay mal que por bien no venga'... logic processing...",
+            "Intercepted: 'Mañana' scheduled to 'Yesterday'. Space-time linguistic drift detected.",
+            "Node ping: '你好' (Hello) echoed from the void. Chinese semantic layer active.",
+            "System Joke: Why don't philosophers translate puns? Because they have too much 'ennui'."
+          ];
+          addLog('SYSTEM', interjections[Math.floor(Math.random() * interjections.length)]);
+        }
+
+        // Random Anomalies
         if (Math.random() < 0.0008 && activeTab === 'dashboard' && !showPuzzle) {
           setCurrentPuzzle(PUZZLES[Math.floor(Math.random() * PUZZLES.length)]);
           setShowPuzzle(true);
@@ -110,20 +122,20 @@ const App: React.FC = () => {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [state, activeTab, isDossierUnlocked, showPuzzle, showDeathScreen]);
+  }, [state, activeTab, isDossierUnlocked, showPuzzle, showDeathScreen, addLog]);
 
   const handleStartStation = (id: StationId) => {
     const station = STATIONS[id];
-    const fuelCost = (station.fuelCost || 0) * (state?.unlockedUpgrades.includes('fuel_cell') ? 0.5 : 1);
-    const rationCost = Math.max(0, (station.rationCost || 0) - (state?.unlockedUpgrades.includes('mre_pack') ? 1 : 0));
+    const fuelCost = (station.fuelCost || 10) * (state?.unlockedUpgrades.includes('fuel_cell') ? 0.5 : 1);
+    const rationCost = Math.max(0, (station.rationCost || 2) - (state?.unlockedUpgrades.includes('mre_pack') ? 1 : 0));
 
     if (state && (state.fuel < fuelCost || state.rations < rationCost)) {
       sfx.error();
-      addLog('ANOMALY', `Insufficient resources for expedition to ${station.title}.`);
+      addLog('ANOMALY', `Insufficient resource: Requires ${fuelCost}F / ${rationCost}R. Mission aborted.`);
       return;
     }
 
-    addLog('SYSTEM', `Traveling to ${station.title}. Consumed ${fuelCost} Fuel, ${rationCost} Rations.`);
+    addLog('RESEARCH', `Iniciando expedición a ${station.title}. Consuming supplies...`);
     sfx.scan();
     setState(prev => prev ? ({ 
       ...prev, 
@@ -135,21 +147,21 @@ const App: React.FC = () => {
     setActiveTab('station');
   };
 
-  const handleCompleteStation = (stationId: StationId, roll: number, draft: string) => {
+  const handleCompleteStation = (stationId: StationId, roll: number, draft: string, finalDC: number, rewardMod: number) => {
     const station = STATIONS[stationId];
-    const success = roll >= station.difficultyDC;
+    const success = roll >= finalDC;
     
     if (success) {
       sfx.confirm();
-      addLog('DICE', `NATURAL ${roll} CHECK SUCCESS against DC ${station.difficultyDC}. Epistemic stability confirmed.`);
+      addLog('DICE', `ROLL SUCCESS: ${roll} vs DC ${finalDC}. Node ${station.title} stabilized. ¡Muy bien!`);
     } else {
       sfx.error();
-      addLog('DICE', `CHECK FAILURE: Rolled ${roll} against DC ${station.difficultyDC}. Logic paradox detected.`);
+      addLog('DICE', `ROLL FAILURE: ${roll} vs DC ${finalDC}. Semantic rupture at ${station.title}. -15 Integrity.`);
     }
 
     setState(prev => {
       if (!prev) return null;
-      const boost = prev.unlockedUpgrades.includes('pip_boy') ? 1.25 : 1;
+      const boost = (prev.unlockedUpgrades.includes('pip_boy') ? 1.25 : 1) * rewardMod;
       const baseXP = success ? 500 : 200;
       const xpGain = baseXP * boost;
       const newlyDiscovered = station.neighbors.filter(n => !prev.discoveredNodes.includes(n));
@@ -229,7 +241,7 @@ const App: React.FC = () => {
             onClose={(success) => {
               setShowPuzzle(false);
               if (success) {
-                addLog('SYSTEM', 'Logic gate bypassed. System performance restored.');
+                addLog('SYSTEM', 'Logic gate bypassed. System performance restored. 很好.');
                 sfx.confirm();
                 const r = currentPuzzle.reward;
                 setState(prev => prev ? ({ 
@@ -240,7 +252,7 @@ const App: React.FC = () => {
                   integrity: Math.min(100, prev.integrity + (r.integrity || 0))
                 }) : null);
               } else {
-                addLog('ANOMALY', 'Failed to bypass logic gate. Integrity compromised.');
+                addLog('ANOMALY', 'Failed to bypass logic gate. Integrity compromised. Paradox detected.');
                 sfx.error();
                 setState(prev => prev ? ({ ...prev, integrity: Math.max(0, prev.integrity - 10) }) : null);
               }
