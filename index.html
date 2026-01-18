@@ -1,11 +1,17 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Vault TOK // Language Laboratory</title>
+  
+  <!-- Tailwind CSS Support -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  
   <style>
     :root {
       --vault-amber: #ffb000;
@@ -18,7 +24,6 @@
       margin: 0;
       overflow-x: hidden;
       min-height: 100vh;
-      /* Mobile touch handling */
       touch-action: manipulation;
     }
     .crt-text {
@@ -30,13 +35,34 @@
       box-shadow: inset 0 0 30px rgba(255, 176, 0, 0.05);
     }
     .vault-btn {
-      @apply border-2 border-[#ffb000] px-4 py-2 uppercase font-bold transition-all hover:bg-[#ffb000] hover:text-[#0a0a0a] active:translate-y-0.5 disabled:opacity-20 disabled:cursor-not-allowed;
+      border: 2px solid var(--vault-amber);
+      padding: 0.5rem 1rem;
+      text-transform: uppercase;
+      font-weight: bold;
+      transition: all 0.2s;
+      background: transparent;
+      color: var(--vault-amber);
+      cursor: pointer;
+      display: inline-block;
+      text-align: center;
     }
-    /* CRT Scanline and Vignette */
+    .vault-btn:hover {
+      background: var(--vault-amber);
+      color: #0a0a0a;
+    }
+    .vault-btn:active {
+      transform: translateY(1px);
+    }
+    .vault-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    /* CRT Scanline and Vignette Effects */
     .crt-overlay {
       position: fixed;
       top: 0; left: 0; bottom: 0; right: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                  linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
       z-index: 1000;
       background-size: 100% 3px, 3px 100%;
       pointer-events: none;
@@ -44,7 +70,7 @@
     .vignette {
       position: fixed;
       top: 0; left: 0; bottom: 0; right: 0;
-      background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.7) 140%);
+      background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.6) 150%);
       z-index: 1001;
       pointer-events: none;
     }
@@ -59,20 +85,29 @@
     .terminal-scrollbar::-webkit-scrollbar-track { background: #050505; }
     .terminal-scrollbar::-webkit-scrollbar-thumb { background: var(--vault-amber); }
     
-    /* RPG Map animations */
     @keyframes node-pulse {
       0% { box-shadow: 0 0 0 0 rgba(255, 176, 0, 0.4); }
       70% { box-shadow: 0 0 0 10px rgba(255, 176, 0, 0); }
       100% { box-shadow: 0 0 0 0 rgba(255, 176, 0, 0); }
     }
     .node-active { animation: node-pulse 2s infinite; }
+
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: #0a0a0a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      color: #ffb000;
+    }
   </style>
 <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@19.0.0",
-    "react-dom": "https://esm.sh/react-dom@19.0.0",
-    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+    "react": "https://esm.sh/react@^19.2.3",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/"
   }
@@ -80,9 +115,53 @@
 </script>
 </head>
 <body>
+  <div id="loading-screen">
+    <h1 class="text-2xl font-bold crt-text mb-4">INITIALIZING VAULT TERMINAL...</h1>
+    <div class="w-48 h-1 bg-[#ffb000]/20 rounded-full overflow-hidden">
+      <div id="loading-bar" class="h-full bg-[#ffb000]" style="width: 0%"></div>
+    </div>
+    <p id="loading-status" class="mt-4 text-[10px] font-mono opacity-50 uppercase tracking-[0.2em]">Authenticating User...</p>
+  </div>
+
   <div class="vignette"></div>
   <div class="crt-overlay"></div>
   <div id="root"></div>
-  <script type="module" src="./index.tsx"></script>
+
+  <!-- esm.sh/run loader: This script intercepts type="text/babel" modules and transpiles them in-browser. -->
+  <script type="module" src="https://esm.sh/run"></script>
+
+  <!-- We use text/babel with a src to ensure esm.sh/run fetches and transpiles it as a TSX file. -->
+  <script type="text/babel" data-type="module" src="./index.tsx"></script>
+
+  <script>
+    // Simple loading bar animation logic
+    const bar = document.getElementById('loading-bar');
+    const status = document.getElementById('loading-status');
+    const messages = ["Loading Protocols...", "Scanning Nodes...", "Establishing Neural Link...", "Bypassing Security...", "Finalizing UI..."];
+    let progress = 0;
+    
+    const interval = setInterval(() => {
+      progress += Math.random() * 5;
+      if (progress >= 100) {
+        progress = 99;
+        clearInterval(interval);
+      }
+      bar.style.width = progress + '%';
+      if (Math.random() > 0.8) {
+        status.textContent = messages[Math.floor(Math.random() * messages.length)];
+      }
+    }, 100);
+
+    // Observer to hide the loading screen when React mounts
+    const observer = new MutationObserver(() => {
+      const root = document.getElementById('root');
+      if (root && root.children.length > 0) {
+        document.getElementById('loading-screen').style.display = 'none';
+        clearInterval(interval);
+        observer.disconnect();
+      }
+    });
+    observer.observe(document.getElementById('root'), { childList: true });
+  </script>
 </body>
 </html>
