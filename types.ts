@@ -76,7 +76,7 @@ export interface GameState {
     rollResult?: number;
   }>;
   xp: number;
-  syncRate: number; // 0-100%
+  syncRate: number; 
   integrity: number; 
   fuel: number;      
   rations: number;   

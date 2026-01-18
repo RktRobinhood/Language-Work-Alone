@@ -52,7 +52,7 @@ const MissionHub: React.FC<MissionHubProps> = ({ state, onStartStation }) => {
       </div>
 
       <div className="flex-1 relative overflow-hidden bg-black border-b border-[#ffb000]/10">
-        <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'radial-gradient(#ffb000 1px, transparent 1px)', backgroundSize: '24px 24px'}}></div>
+        <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'radial-gradient(#ffb000 1px, transparent 1px)', backgroundSize: '32px 32px'}}></div>
         
         {state.discoveredNodes.map(id => {
           const s = STATIONS[id];
@@ -78,7 +78,7 @@ const MissionHub: React.FC<MissionHubProps> = ({ state, onStartStation }) => {
                 isSelected ? 'bg-white border-cyan-400 shadow-[0_0_20px_cyan]' : 
                 'bg-cyan-900/30 border-cyan-700/50'
               }`}>
-                {!isDecrypted && <div className="absolute inset-0 flex items-center justify-center text-[8px] font-black">-</div>}
+                {!isDecrypted && <div className="absolute inset-0 flex items-center justify-center text-[8px] font-black">?</div>}
               </div>
             </button>
           );
@@ -100,23 +100,23 @@ const MissionHub: React.FC<MissionHubProps> = ({ state, onStartStation }) => {
               <button 
                 disabled={isTraveling || !!state.stationProgress[selectedNodeId]?.completedAt || !state.decryptedNodes.includes(selectedNodeId)}
                 onClick={() => handleStart(selectedNodeId)}
-                className="px-6 py-3 bg-cyan-500 text-black font-black uppercase text-[10px] tracking-widest hover:bg-white active:scale-95 transition-all disabled:opacity-20"
+                className="px-6 py-3 bg-cyan-500 text-black font-black uppercase text-[10px] tracking-widest hover:bg-white active:scale-95 transition-all disabled:opacity-20 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
               >
-                {isTraveling ? 'SYNCING...' : 'ENTER'}
+                {isTraveling ? 'SYNCING...' : !!state.stationProgress[selectedNodeId]?.completedAt ? 'STABILIZED' : 'ENTER'}
               </button>
             </div>
           )}
         </div>
       </div>
 
-      <div className="h-40 shrink-0 flex flex-col bg-black">
+      <div className="h-44 shrink-0 flex flex-col bg-black">
         <div className="px-3 py-1.5 border-b border-white/5 flex justify-between items-center bg-white/5">
-           <span className="text-[7px] font-bold uppercase tracking-[0.4em] opacity-40">Animus_Memory_Stream</span>
+           <span className="text-[7px] font-bold uppercase tracking-[0.4em] opacity-40">Animus_Story_Buffer</span>
         </div>
         <div className="flex-1 overflow-y-auto p-4 terminal-scrollbar space-y-4 font-mono text-[9px]">
-          {state.researchLog.slice(-15).map((log, i) => (
-            <div key={i} className="flex gap-4">
-              <span className="opacity-20 whitespace-nowrap">[{new Date(log.t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
+          {state.researchLog.slice(-20).map((log, i) => (
+            <div key={i} className="flex gap-4 group">
+              <span className="opacity-20 whitespace-nowrap group-hover:opacity-60 transition-opacity">[{new Date(log.t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
               <p className={`${log.type === 'STORY' ? 'text-cyan-200/90 italic' : 'text-amber-500'} leading-relaxed`}>
                 {log.msg}
               </p>

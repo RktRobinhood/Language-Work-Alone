@@ -15,8 +15,8 @@ import TerminalUpgrades from './components/TerminalUpgrades.tsx';
 import DeathScreen from './components/DeathScreen.tsx';
 import FinalSynthesis from './components/FinalSynthesis.tsx';
 
-const STORAGE_KEY = 'vault_tok_v9_sync';
-const SYNC_THRESHOLD = 6; // Nodes needed for endgame
+const STORAGE_KEY = 'vault_tok_v10_stable';
+const SYNC_THRESHOLD = 6; 
 
 const App: React.FC = () => {
   const [state, setState] = useState<GameState | null>(null);
@@ -39,8 +39,10 @@ const App: React.FC = () => {
     const rng = new SeededRNG(seed);
     const shuffled = rng.shuffle([...allIds]);
     
+    // Improved prerequisite logic: Ensure prereq is one of the visible/earlier nodes
     const prereqs: Record<string, StationId> = {};
     for (let i = 2; i < shuffled.length; i++) {
+      // Pick a random node that appeared EARLIER in the shuffle to act as a logical bridge
       const randomPre = shuffled[Math.floor(rng.next() * i)];
       prereqs[shuffled[i]] = randomPre;
     }
@@ -60,7 +62,7 @@ const App: React.FC = () => {
       integrity: 100,
       fuel: 100,
       rations: 20,
-      researchLog: [{ t: Date.now(), type: 'STORY', msg: 'The Animus awakens. You are in the "Language Lab" memory cluster. Synchronization at 0%. Locate the first morphology node.' }],
+      researchLog: [{ t: Date.now(), type: 'STORY', msg: 'The Animus awakens. Spanish voices whisper in the static: "El mapa no es el territorio." Synchronization at 0%.' }],
       unlockedUpgrades: []
     };
     
@@ -74,8 +76,8 @@ const App: React.FC = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Migration check
-        if (!parsed.syncRate && parsed.syncRate !== 0) parsed.syncRate = 0;
+        // Data migration and integrity check to prevent black screens
+        if (!parsed.discoveredNodes) throw new Error("Invalid state");
         setState(parsed);
       } catch (e) {
         createNewSession();
@@ -90,7 +92,7 @@ const App: React.FC = () => {
     if (state.integrity <= 0 && !showDeathScreen) {
       setShowDeathScreen(true);
       sfx.glitch();
-      addLog('STORY', 'DESYNCHRONIZATION COMPLETE. Your linguistic core has been purged. Re-entering memory corridor...');
+      addLog('STORY', 'CRITICAL DESYNC. Your linguistic core has shattered. A French echo laughs: "C’est la fin."');
     }
   }, [state?.integrity, showDeathScreen, addLog]);
 
@@ -99,7 +101,8 @@ const App: React.FC = () => {
     const isDecrypted = state.decryptedNodes.includes(id);
     if (!isDecrypted) {
       sfx.error();
-      addLog('ANOMALY', 'Memory block encrypted. Stabilize prerequisite nodes to unlock this linguistic cluster.');
+      const pre = state.nodePrerequisites[id];
+      addLog('ANOMALY', `FAILED: Memory block encrypted. Stabilize [${pre.toUpperCase()}] to extract the decryption key.`);
       return;
     }
 
@@ -109,11 +112,11 @@ const App: React.FC = () => {
 
     if (state.fuel < fuelCost || state.rations < rationCost) {
       sfx.error();
-      addLog('RESEARCH', 'Low Sync Fuel. Your consciousness cannot maintain the projection of this location.');
+      addLog('RESEARCH', 'Insufficient Sync Fuel. Your consciousness cannot sustain this memory projection.');
       return;
     }
 
-    addLog('STORY', `Syncing with memory cluster: ${station.title}. Hold steady.`);
+    addLog('STORY', `Synchronizing with memory cluster: ${station.title}. The ghosts of dead languages gather...`);
     sfx.scan();
     setState(prev => prev ? ({ 
       ...prev, 
@@ -130,10 +133,20 @@ const App: React.FC = () => {
     
     if (success) {
       sfx.confirm();
-      addLog('STORY', `SYNC SUCCESS: Memory Fragment ${roll} matched the sequence. Data stream: OK.`);
+      const msgs = [
+        `The D20 clatters: ${roll}. Victory. You bridge the semantic gap. The knowledge flows like a river. ¡Lo lograste!`,
+        `Roll: ${roll}. SUCCESS. The Animus stabilizes. You feel a sudden mastery over the logic. 很好.`,
+        `Check PASSED (${roll}). You weave the contradictory evidence into a coherent shield. Data stream: STABLE.`
+      ];
+      addLog('STORY', msgs[Math.floor(Math.random() * msgs.length)]);
     } else {
       sfx.error();
-      addLog('STORY', `SYNC FAILED: Data corruption in roll ${roll}. Desynchronization penalty applied.`);
+      const msgs = [
+        `The D20 clatters: ${roll}. FAILURE. A linguistic rupture scars your synapses. You hear a German echo: "Das ist nicht gut."`,
+        `Roll: ${roll}. CRITICAL ERROR. The translation engine screeches. You lose your grip on the narrative. -20 Integrity.`,
+        `Check FAILED (${roll}). The logic loops back on itself, crushing your stability. Semantic bleed detected.`
+      ];
+      addLog('STORY', msgs[Math.floor(Math.random() * msgs.length)]);
     }
 
     setState(prev => {
@@ -146,6 +159,8 @@ const App: React.FC = () => {
 
       const newDiscovered = Array.from(new Set([...prev.discoveredNodes, ...neighbors]));
       const completedIds = [...Object.keys(prev.stationProgress), stationId];
+      
+      // Unlock new decrypted nodes based on prerequisites
       const newlyDecrypted = newDiscovered.filter(id => {
         const prereq = prev.nodePrerequisites[id];
         return !prereq || completedIds.includes(prereq);
@@ -156,7 +171,7 @@ const App: React.FC = () => {
         [stationId]: { completedAt: Date.now(), draft, rollResult: roll }
       };
 
-      const newSyncRate = Math.min(100, (Object.keys(updatedProgress).length / 12) * 100);
+      const newSyncRate = Math.min(100, Math.floor((Object.keys(updatedProgress).length / 12) * 100));
 
       return {
         ...prev,
@@ -179,82 +194,81 @@ const App: React.FC = () => {
   const stabilizedCount = Object.keys(state.stationProgress).length;
 
   return (
-    <>
-      <Layout state={state} onNav={setActiveTab} activeTab={activeTab} stabilizedCount={stabilizedCount}>
-        <div className="h-full flex flex-col">
-          {activeTab === 'dashboard' && (
-            <MissionHub 
-              state={state} 
-              onStartStation={handleStartStation} 
-              onShowEndgame={() => setActiveTab('endgame')}
-              isEndgameUnlocked={stabilizedCount >= SYNC_THRESHOLD}
-            />
-          )}
-          
-          {activeTab === 'station' && state.currentStationId && (
-            <StationView 
-              station={STATIONS[state.currentStationId]}
-              onComplete={handleCompleteStation}
-              onCancel={() => { sfx.error(); setState(prev => prev ? ({ ...prev, currentStationId: null }) : null); setActiveTab('dashboard'); }}
-              state={state}
-              onUpdateState={(updater) => setState(prev => prev ? updater(prev) : null)}
-              addLog={addLog}
-            />
-          )}
-
-          {activeTab === 'upgrades' && (
-            <TerminalUpgrades 
-              state={state} 
-              onBuy={(id, cost) => {
-                setState(prev => prev ? ({ ...prev, xp: prev.xp - cost, unlockedUpgrades: [...prev.unlockedUpgrades, id] }) : null);
-                addLog('ACHIEVEMENT', `Animus Upgrade Configured: ${UPGRADES.find(u => u.id === id)?.name}`);
-                sfx.confirm();
-              }} 
-              onBack={() => setActiveTab('dashboard')} 
-            />
-          )}
-
-          {activeTab === 'submission' && (
-            <SubmissionPack state={state} onBack={() => setActiveTab('dashboard')} />
-          )}
-
-          {activeTab === 'endgame' && (
-            <FinalSynthesis 
-              state={state} 
-              onSyncFinish={(sync) => {
-                setState(prev => prev ? ({ ...prev, stage: GameStage.COMPLETE, syncRate: sync }) : null);
-                setActiveTab('submission');
-                addLog('SYNC', `FINAL SYNCHRONIZATION COMPLETE. Global Sync Rate: ${sync}%. Saving to history.`);
-              }}
-              onIntegrityLoss={(amt) => setState(prev => prev ? ({ ...prev, integrity: Math.max(0, prev.integrity - amt) }) : null)}
-            />
-          )}
-        </div>
-
-        {showPuzzle && (
-          <PuzzleModal 
-            puzzle={currentPuzzle} 
-            onClose={(success) => {
-              setShowPuzzle(false);
-              if (success) {
-                addLog('STORY', 'Memory corridor bypass successful. Integrity reinforced.');
-                const r = currentPuzzle.reward;
-                setState(prev => prev ? ({ 
-                  ...prev, 
-                  xp: prev.xp + (r.xp || 0),
-                  fuel: Math.min(100, prev.fuel + (r.fuel || 0)),
-                  integrity: Math.min(100, prev.integrity + (r.integrity || 0))
-                }) : null);
-              } else {
-                addLog('STORY', 'Bypass failed. Desynchronization shockwave detected.');
-                setState(prev => prev ? ({ ...prev, integrity: Math.max(0, prev.integrity - 10) }) : null);
-              }
-            }}
+    <Layout state={state} onNav={setActiveTab} activeTab={activeTab} stabilizedCount={stabilizedCount}>
+      <div className="h-full flex flex-col">
+        {activeTab === 'dashboard' && (
+          <MissionHub 
+            state={state} 
+            onStartStation={handleStartStation} 
+            onShowEndgame={() => setActiveTab('endgame')}
+            isEndgameUnlocked={stabilizedCount >= SYNC_THRESHOLD}
           />
         )}
-      </Layout>
+        
+        {activeTab === 'station' && state.currentStationId && (
+          <StationView 
+            station={STATIONS[state.currentStationId]}
+            onComplete={handleCompleteStation}
+            onCancel={() => { sfx.error(); setState(prev => prev ? ({ ...prev, currentStationId: null }) : null); setActiveTab('dashboard'); }}
+            state={state}
+            onUpdateState={(updater) => setState(prev => prev ? updater(prev) : null)}
+            addLog={addLog}
+          />
+        )}
+
+        {activeTab === 'upgrades' && (
+          <TerminalUpgrades 
+            state={state} 
+            onBuy={(id, cost) => {
+              setState(prev => prev ? ({ ...prev, xp: prev.xp - cost, unlockedUpgrades: [...prev.unlockedUpgrades, id] }) : null);
+              addLog('ACHIEVEMENT', `Animus Upgrade Configured: ${UPGRADES.find(u => u.id === id)?.name}`);
+              sfx.confirm();
+            }} 
+            onBack={() => setActiveTab('dashboard')} 
+          />
+        )}
+
+        {activeTab === 'submission' && (
+          <SubmissionPack state={state} onBack={() => setActiveTab('dashboard')} />
+        )}
+
+        {activeTab === 'endgame' && (
+          <FinalSynthesis 
+            state={state} 
+            onSyncFinish={(sync) => {
+              setState(prev => prev ? ({ ...prev, stage: GameStage.COMPLETE, syncRate: sync }) : null);
+              setActiveTab('submission');
+              addLog('SYNC', `FINAL SYNCHRONIZATION COMPLETE. Global Sync Rate: ${sync}%. Saving to history.`);
+            }}
+            onIntegrityLoss={(amt) => setState(prev => prev ? ({ ...prev, integrity: Math.max(0, prev.integrity - amt) }) : null)}
+          />
+        )}
+      </div>
+
+      {showPuzzle && (
+        <PuzzleModal 
+          puzzle={currentPuzzle} 
+          onClose={(success) => {
+            setShowPuzzle(false);
+            if (success) {
+              addLog('STORY', 'Memory corridor bypass successful. Integrity reinforced.');
+              const r = currentPuzzle.reward;
+              setState(prev => prev ? ({ 
+                ...prev, 
+                xp: prev.xp + (r.xp || 0),
+                fuel: Math.min(100, prev.fuel + (r.fuel || 0)),
+                integrity: Math.min(100, prev.integrity + (r.integrity || 0))
+              }) : null);
+            } else {
+              addLog('STORY', 'Bypass failed. Desynchronization shockwave detected.');
+              setState(prev => prev ? ({ ...prev, integrity: Math.max(0, prev.integrity - 10) }) : null);
+            }
+          }}
+        />
+      )}
+
       {showDeathScreen && <DeathScreen onReset={createNewSession} />}
-    </>
+    </Layout>
   );
 };
 
