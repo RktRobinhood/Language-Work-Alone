@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Puzzle } from '../types';
-import { sfx } from '../utils/sfx';
+import { Puzzle } from '../types.ts';
+import { sfx } from '../utils/sfx.ts';
 
 interface PuzzleModalProps {
   puzzle: Puzzle;
@@ -76,7 +76,8 @@ const PuzzleModal: React.FC<PuzzleModalProps> = ({ puzzle, onClose }) => {
         </div>
         
         <p className="text-[10px] text-center text-slate-600 mt-4 uppercase font-mono">
-          Reward: {puzzle.reward} | Failure Penalty: Reputation Loss
+          {/* Corrected to render specific reward values instead of the entire object */}
+          Reward: {Object.entries(puzzle.reward).filter(([_, v]) => v !== undefined).map(([k, v]) => `${v} ${k.toUpperCase()}`).join(', ')} | Failure Penalty: Reputation Loss
         </p>
       </div>
       

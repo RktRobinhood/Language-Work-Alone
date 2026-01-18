@@ -25,6 +25,8 @@ export interface MCQ {
   answerIndex: number;
 }
 
+export type ScaffoldType = 'claim-counter' | 'concept-map' | 'perspective-shift' | 'ethical-eval' | 'standard';
+
 export interface Station {
   id: StationId;
   title: string;
@@ -34,6 +36,7 @@ export interface Station {
   youtubeId?: string;
   mcqs: MCQ[];
   deliverablePrompt: string;
+  scaffoldType: ScaffoldType;
   x: number;
   y: number;
   rewardTool?: string;
@@ -62,6 +65,7 @@ export interface GameState {
     completedAt?: number;
     failedAttempts: number;
     draft?: string;
+    extraData?: any;
   }>;
   xp: number;
   clearanceLevel: number;
@@ -74,7 +78,7 @@ export interface GameState {
 
 export interface Puzzle {
   id: string;
-  type: 'cipher' | 'pattern' | 'match' | 'anagram';
+  type: 'logic' | 'pattern' | 'fallacy' | 'tok-concept';
   prompt: string;
   solution: string;
   reward: { xp?: number, fuel?: number, rations?: number, integrity?: number };
