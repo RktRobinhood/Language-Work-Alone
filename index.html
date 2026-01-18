@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -54,27 +55,11 @@
       justify-content: center;
       z-index: 10000;
       color: #ffb000;
+      transition: opacity 0.8s ease-out;
     }
     .terminal-scrollbar::-webkit-scrollbar { width: 4px; }
     .terminal-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .terminal-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 176, 0, 0.2); }
-    
-    /* Animation for active research nodes */
-    @keyframes pulse-ring {
-      0% { transform: scale(0.33); opacity: 1; }
-      80%, 100% { opacity: 0; }
-    }
-    .node-pulse {
-      position: relative;
-    }
-    .node-pulse::before {
-      content: '';
-      position: absolute;
-      width: 300%; height: 300%;
-      border-radius: 50%;
-      border: 1px solid var(--vault-amber);
-      animation: pulse-ring 1.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
-    }
   </style>
 <script type="importmap">
 {
@@ -92,7 +77,7 @@
       <div class="w-12 h-12 border-4 border-t-[#ffb000] border-[#ffb000]/20 rounded-full animate-spin mb-4"></div>
       <h1 class="text-lg font-bold tracking-[0.3em] crt-text">TERMINAL_BOOT_SEQ</h1>
     </div>
-    <div id="boot-log" class="text-[10px] opacity-40 uppercase space-y-1 font-mono text-center">
+    <div id="boot-log" class="text-[10px] opacity-40 uppercase space-y-1 font-mono text-center max-w-xs px-4">
       <div>Verifying encryption keys...</div>
     </div>
   </div>
@@ -110,7 +95,7 @@
       "Syncing TOK Frameworks...",
       "Neural Link Established...",
       "Decrypting Language Database...",
-      "UI Layer Ready."
+      "Optimizing UI Modules..."
     ];
     let i = 0;
     const log = document.getElementById('boot-log');
@@ -123,15 +108,27 @@
       } else {
         clearInterval(interval);
       }
-    }, 400);
+    }, 350);
+
+    function dismissLoading() {
+      const loader = document.getElementById('loading-screen');
+      if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => loader.style.display = 'none', 800);
+      }
+    }
+
+    // Resilience: Fallback timeout if MutationObserver doesn't catch the React mount
+    const failsafe = setTimeout(() => {
+      console.warn("Failsafe: Loading screen forced dismissal.");
+      dismissLoading();
+    }, 5000);
 
     const observer = new MutationObserver(() => {
       const root = document.getElementById('root');
       if (root && root.children.length > 0) {
-        setTimeout(() => {
-          document.getElementById('loading-screen').style.opacity = '0';
-          setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 500);
-        }, 800);
+        clearTimeout(failsafe);
+        setTimeout(dismissLoading, 500);
         observer.disconnect();
       }
     });

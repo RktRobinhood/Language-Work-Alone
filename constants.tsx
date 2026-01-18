@@ -35,9 +35,9 @@ This raises a profound Theory of Knowledge question: To what extent does our lin
     scaffoldType: 'perspective-shift',
     lessonPlan: "Evaluate how cardinal direction-based languages might change a culture's concept of 'self' in relation to the universe.",
     mcqs: [
-      { question: "Why is 'Strong Determinism' largely rejected today?", options: ["It suggests humans are incapable of learning new concepts without existing words", "It is considered too poetic", "It was never written down properly", "It ignores the role of math"], answerIndex: 0 },
-      { question: "What is the primary distinction in Hopi grammar according to Whorf?", options: ["Subject vs Object", "Manifest vs Unmanifest", "Past vs Future", "Noun vs Verb"], answerIndex: 1 },
-      { question: "Kuuk Thaayorre speakers have high spatial awareness because:", options: ["They are born with better inner ears", "Their language forces them to use cardinal directions constantly", "They live in flat areas", "They use GPS technology"], answerIndex: 1 }
+      { question: "Why is 'Strong Determinism' largely rejected today?", options: ["It was never written down properly", "It ignores the role of math", "It suggests humans are incapable of learning new concepts without existing words", "It is considered too poetic"], answerIndex: 2 },
+      { question: "What is the primary distinction in Hopi grammar according to Whorf?", options: ["Manifest vs Unmanifest", "Subject vs Object", "Past vs Future", "Noun vs Verb"], answerIndex: 0 },
+      { question: "Kuuk Thaayorre speakers have high spatial awareness because:", options: ["They are born with better inner ears", "They use GPS technology", "They live in flat areas", "Their language forces them to use cardinal directions constantly"], answerIndex: 3 }
     ],
     deliverablePrompt: "How would your perception of a 'deadline' change if your language only allowed you to describe it as an 'Unmanifest Intention' rather than a 'Future Point on a Line'?"
   },
@@ -45,25 +45,29 @@ This raises a profound Theory of Knowledge question: To what extent does our lin
     id: StationId.TRANSLATION,
     title: "The Bridge of Sighs",
     coreIdea: "The Epistemology of Translation.",
-    readingSource: "Comparative Religious Studies",
+    readingSource: "Biblical & Philosophical Texts",
     reading: `Translation is fundamentally an act of hermeneutics—the science of interpretation. To translate is not merely to find equivalents, but to negotiate between two distinct systems of meaning. This is most visible in the translation of foundational philosophical or religious texts, where a single word carries centuries of conceptual baggage.
 
 Consider the Gospel of John’s opening: 'In the beginning was the Logos.' The term 'Logos' in Greek philosophy refers to reason, proportion, the ground of being, and discourse. In Latin, it was translated as 'Verbum' (Word), which narrowed the meaning significantly. When Christian missionaries first reached China, they faced a choice: translate 'Logos' into a phonetic approximation, or use an existing Chinese concept. Many chose 'Dao' (The Way). While 'Dao' captures the sense of a fundamental cosmic principle, it brings with it the context of Taoism—a philosophy of flow and non-interference that differs sharply from the Greek 'Logos' as a structured, rational blueprint.
 
-Another example is the concept of 'Spirit' vs 'Ghost' vs 'Soul.' In many African languages, the distinction between a living soul, an ancestral spirit, and a malevolent ghost is governed by specific grammatical markers of proximity and respect. Translating these into a 'neutral' English equivalent often results in 'epistemic flattening,' where the unique indigenous ontology (way of being) is erased in favor of a Western paradigm.
+Another example is the concept of 'Spirit' vs 'Ghost' vs 'Soul.' In many African languages, the distinction between a living soul, an ancestral spirit, and a malevolent ghost is governed by specific grammatical markers of proximity and respect. Translating these into a 'neutral' English equivalent often results in 'epistemic flattening,' where the unique indigenous ontology is erased in favor of a Western paradigm.
 
-For the multi-lingual knower, translation is an exercise in identifying 'semantic leaks.' No two words ever cover the exact same ground. The French 'ennui' is not just 'boredom'; it is a philosophical weariness. The Japanese 'mottainai' is not just 'waste'; it is a regret that the spirit of an object was not respected.`,
+For the multi-lingual knower, translation is an exercise in identifying 'semantic leaks.' No two words ever cover the exact same ground. The French 'ennui' is not just 'boredom'; it is a philosophical weariness. The Japanese 'mottainai' is not just 'waste'; it is a regret that the spirit of an object was not respected.
+
+SOURCE TEXT FOR EXERCISE (Tao Te Ching):
+'The Tao that can be told is not the eternal Tao. The name that can be named is not the eternal name.'
+Analyze the word 'Eternal'. In some languages, 'Eternal' implies 'infinite duration of time', while in others it implies 'existing outside of time entirely'.`,
     x: 40, y: 80,
     fuelCost: 12, rationCost: 3,
     neighbors: [StationId.AI_MT, StationId.HUMOR, StationId.ORAL_TRADITION],
     scaffoldType: 'perspective-shift',
     lessonPlan: "Examine a core concept in your native language (L1) and attempt to find its exact equivalent in English (L2). Identify the 'residual meaning' that is lost.",
     mcqs: [
-      { question: "What happened when 'Logos' was translated as 'Dao'?", options: ["The meaning was perfectly preserved", "It adopted the conceptual baggage of Taoism", "The text became unreadable", "It was a phonetic match"], answerIndex: 1 },
-      { question: "Epistemic flattening refers to:", options: ["Improving translation speed", "The loss of unique cultural ontological distinctions during translation", "Correcting grammar errors", "The invention of new words"], answerIndex: 1 },
-      { question: "Why is 'Mottainai' difficult to translate as just 'waste'?", options: ["It is a longer word", "It implies a spiritual regret for the object's essence", "It refers to toxic waste specifically", "It is a slang term"], answerIndex: 1 }
+      { question: "What happened when 'Logos' was translated as 'Dao'?", options: ["The text became unreadable", "The meaning was perfectly preserved", "It adopted the conceptual baggage of Taoism", "It was a phonetic match"], answerIndex: 2 },
+      { question: "Epistemic flattening refers to:", options: ["The loss of unique cultural ontological distinctions during translation", "Improving translation speed", "Correcting grammar errors", "The invention of new words"], answerIndex: 0 },
+      { question: "Why is 'Mottainai' difficult to translate as just 'waste'?", options: ["It refers to toxic waste specifically", "It implies a spiritual regret for the object's essence", "It is a longer word", "It is a slang term"], answerIndex: 1 }
     ],
-    deliverablePrompt: "SOURCE TEXT (Tao Te Ching): 'The Way that can be told is not the eternal Way.' If you speak another language, translate this now. Then, identify one word in your translation that feels 'heavier' or 'lighter' than the English version and explain why."
+    deliverablePrompt: "Translate the provided Tao Te Ching excerpt into your other native language. Identify one word in your translation that feels 'heavier' or 'lighter' than the English version and explain why."
   },
   [StationId.NEWS_PEAK]: {
     id: StationId.NEWS_PEAK,
@@ -82,11 +86,11 @@ This brings us to a TOK question: If we lose the words to describe an injustice,
     fuelCost: 15, rationCost: 4,
     neighbors: [StationId.JARGON, StationId.POLITENESS],
     scaffoldType: 'claim-counter',
-    lessonPlan: "Analyze how modern 'Corporate Speak' (e.g., 'downsizing' instead of 'firing') functions as a form of Newspeak.",
+    lessonPlan: "Analyze how modern 'Corporate Speak' functions as a form of Newspeak.",
     mcqs: [
-      { question: "The primary goal of Newspeak was to:", options: ["Make communication faster", "Restrict the range of human thought", "Encourage poetry", "Standardize spelling"], answerIndex: 1 },
-      { question: "How does 'Collateral Damage' function as doublespeak?", options: ["It is more accurate", "It sanitizes the reality of civilian death", "It is a technical term used by doctors", "It is easier to translate"], answerIndex: 1 },
-      { question: "According to Orwell, a 'heretical thought' becomes impossible because:", options: ["People are too happy", "The words to express it no longer exist", "Punishment is too severe", "Everyone agrees with the Party"], answerIndex: 1 }
+      { question: "The primary goal of Newspeak was to:", options: ["Encourage poetry", "Make communication faster", "Standardize spelling", "Restrict the range of human thought"], answerIndex: 3 },
+      { question: "How does 'Collateral Damage' function as doublespeak?", options: ["It sanitizes the reality of civilian death", "It is more accurate", "It is a technical term used by doctors", "It is easier to translate"], answerIndex: 0 },
+      { question: "According to Orwell, a 'heretical thought' becomes impossible because:", options: ["Everyone agrees with the Party", "People are too happy", "The words to express it no longer exist", "Punishment is too severe"], answerIndex: 2 }
     ],
     deliverablePrompt: "CLAIM: 'Human thought is limited by the vocabulary available to the thinker.' COUNTER: Provide an example of how a person might 'feel' or 'know' a truth even if they lack the precise word for it."
   },
@@ -109,9 +113,9 @@ This is a profound example of how language structures our knowledge of Ethics. I
     scaffoldType: 'ethical-eval',
     lessonPlan: "Contrast the 'Resource-based' language of modern economics with the 'Relational' language of indigenous ecology.",
     mcqs: [
-      { question: "In Potawatomi, a 'bay' is often described as:", options: ["A noun", "A verb (to be a bay)", "A spiritual ghost", "A type of property"], answerIndex: 1 },
-      { question: "The 'Grammar of Animacy' suggests that:", options: ["All things should be capitalized", "Language creates a moral relationship with the world", "Only humans can speak", "Nature is a machine"], answerIndex: 1 },
-      { question: "Using 'it' for a tree is an example of:", options: ["Objectification", "Precision", "Scientific neutrality", "Grammatical necessity"], answerIndex: 0 }
+      { question: "In Potawatomi, a 'bay' is often described as:", options: ["A noun", "A type of property", "A verb (to be a bay)", "A spiritual ghost"], answerIndex: 2 },
+      { question: "The 'Grammar of Animacy' suggests that:", options: ["Nature is a machine", "Language creates a moral relationship with the world", "All things should be capitalized", "Only humans can speak"], answerIndex: 1 },
+      { question: "Using 'it' for a tree is an example of:", options: ["Precision", "Scientific neutrality", "Grammatical necessity", "Objectification"], answerIndex: 3 }
     ],
     deliverablePrompt: "ETHICAL EVALUATION: How does the scientific study of an ecosystem change if the researcher views the organisms as 'Subjects' rather than 'Objects of Study'?"
   },
@@ -135,8 +139,8 @@ Metaphors are essential for understanding abstract concepts. We map 'Concrete So
     lessonPlan: "Identify the primary metaphors used in the Area of Knowledge of 'The Natural Sciences' (e.g., 'The Brain is a Computer').",
     mcqs: [
       { question: "According to Lakoff, metaphors map ___ to ___.", options: ["Words to Sounds", "Concrete Sources to Abstract Targets", "Past to Future", "Subject to Object"], answerIndex: 1 },
-      { question: "If 'Argument is Dance', the participants would likely:", options: ["Try to win at all costs", "Focus on collaboration and balance", "Stop talking", "Use weapons"], answerIndex: 1 },
-      { question: "The 'Time is Money' metaphor is most common in:", options: ["Agricultural societies", "Industrialized capitalist societies", "Nomadic tribes", "Ancient civilizations"], answerIndex: 1 }
+      { question: "If 'Argument is Dance', the participants would likely:", options: ["Focus on collaboration and balance", "Try to win at all costs", "Stop talking", "Use weapons"], answerIndex: 0 },
+      { question: "The 'Time is Money' metaphor is most common in:", options: ["Agricultural societies", "Nomadic tribes", "Industrialized capitalist societies", "Ancient civilizations"], answerIndex: 2 }
     ],
     deliverablePrompt: "CONCEPT MAP: List three metaphors used in the study of 'The Human Sciences' (e.g. 'Social Fabric'). Explain what each metaphor highlights and what it hides."
   },
@@ -149,7 +153,7 @@ Metaphors are essential for understanding abstract concepts. We map 'Concrete So
 
 Indigenous languages often contain highly specific 'Traditional Ecological Knowledge' (TEK). For example, a language in the Amazon might have 50 different words for different stages of a specific medicinal plant's growth—nuances that English, with its broader categories, would miss. If the language is lost, the scientific knowledge of that plant’s properties, developed over millennia, is effectively 'erased' from the global database of human knowledge.
 
-Furthermore, language death is often a result of 'Linguistic Imperialism,' where dominant languages (like English, Spanish, or Mandarin) displace local tongues due to economic and political pressure. This creates a 'Monoculture of the Mind,' where diversity of thought is reduced. As Wade Davis famously said, 'A language is not just a body of vocabulary or a set of grammatical rules. A language is a flash of the human spirit.'
+Furthermore, language death is often a result of 'Linguistic Imperialism,' where dominant languages displacement local tongues due to economic and political pressure. This creates a 'Monoculture of the Mind,' where diversity of thought is reduced. As Wade Davis famously said, 'A language is not just a body of vocabulary or a set of grammatical rules. A language is a flash of the human spirit.'
 
 From a TOK perspective, we must ask: Is knowledge 'universal,' or is it tied to the language in which it was discovered? Can the 'Traditional Ecological Knowledge' of a lost language ever be fully recovered via translation into a dominant language, or is some part of that knowledge inherently untranslatable?`,
     x: 50, y: 40,
@@ -160,7 +164,7 @@ From a TOK perspective, we must ask: Is knowledge 'universal,' or is it tied to 
     mcqs: [
       { question: "What is 'Traditional Ecological Knowledge' (TEK)?", options: ["Modern farming techniques", "Knowledge of local environments stored in indigenous languages", "The study of old books", "A type of computer code"], answerIndex: 1 },
       { question: "Linguistic Imperialism refers to:", options: ["Learning many languages", "The displacement of local languages by dominant ones", "The study of Latin", "Building bigger libraries"], answerIndex: 1 },
-      { question: "Why is language loss compared to 'burning a library'?", options: ["It is physically dangerous", "It represents the permanent loss of unique human knowledge", "It is very loud", "It is a metaphor for climate change"], answerIndex: 1 }
+      { question: "Why is language loss compared to 'burning a library'?", options: ["It represents the permanent loss of unique human knowledge", "It is physically dangerous", "It is very loud", "It is a metaphor for climate change"], answerIndex: 0 }
     ],
     deliverablePrompt: "ETHICAL EVALUATION: Should the international community spend billions of dollars to save a language spoken by only 10 people? Justify your position using TOK concepts like 'Cultural Heritage' and 'Epistemic Diversity'."
   },
@@ -183,8 +187,8 @@ This raises a critical TOK question: If our primary tool for accessing global kn
     lessonPlan: "Test a translation tool with gender-neutral languages and analyze the gendered outputs for different professions.",
     mcqs: [
       { question: "Modern AI translation works primarily by:", options: ["Using a digital dictionary", "Analyzing statistical patterns in large datasets", "Understanding human emotions", "Reading the user's mind"], answerIndex: 1 },
-      { question: "Why might an AI translate 'The doctor' as 'He'?", options: ["It is a grammatical rule", "The training data contains more examples of male doctors", "It is being intentionally sexist", "It is a random guess"], answerIndex: 1 },
-      { question: "The 'Feedback Loop of Knowledge' means:", options: ["AI gets faster over time", "AI-generated biases become the new standard for human data", "Users provide better feedback", "The internet is growing"], answerIndex: 1 }
+      { question: "Why might an AI translate 'The doctor' as 'He'?", options: ["It is a random guess", "The training data contains more examples of male doctors", "It is a grammatical rule", "It is being intentionally sexist"], answerIndex: 1 },
+      { question: "The 'Feedback Loop of Knowledge' means:", options: ["AI gets faster over time", "Users provide better feedback", "The internet is growing", "AI-generated biases become the new standard for human data"], answerIndex: 3 }
     ],
     deliverablePrompt: "ETHICAL EVALUATION: If an AI translation tool is 99% accurate but reinforces harmful stereotypes, is it better to use it or to wait for a human translator? Consider the trade-off between efficiency and epistemic justice."
   },
@@ -195,7 +199,7 @@ This raises a critical TOK question: If our primary tool for accessing global kn
     readingSource: "Sociology of Science / Academic Writing",
     reading: `Every community of knowers—be they particle physicists, jazz musicians, or skateboarders—develops its own specialized language, or 'Jargon.' Jargon serves two primary epistemic functions: precision and group identity.
 
-Within a field like Law, specific terms like 'Habeas Corpus' or 'Force Majeure' carry precise meanings that would require paragraphs of everyday language to explain. This allows experts to communicate with extreme efficiency. However, the same language acts as a 'Gatekeeper.' Those who do not speak the jargon are excluded from the conversation, even if the topic directly affects them.
+Within a field like Law, specific terms like 'Habeas Corpus' carry precise meanings that would require paragraphs of everyday language to explain. This allows experts to communicate with extreme efficiency. However, the same language acts as a 'Gatekeeper.' Those who do not speak the jargon are excluded from the conversation, even if the topic directly affects them.
 
 This creates an 'Asymmetry of Knowledge.' If a doctor uses highly technical medical jargon to explain a diagnosis, the patient may 'know' the facts but not 'understand' the implications. The language itself creates a power dynamic where the expert holds the keys to understanding.
 
@@ -207,7 +211,7 @@ Furthermore, jargon can sometimes be used to obfuscate—to make simple things s
     lessonPlan: "Translate a complex paragraph from a TOK textbook into 'Plain English' and evaluate what is lost in terms of precision.",
     mcqs: [
       { question: "The primary 'internal' benefit of jargon is:", options: ["To sound smarter", "Precision and efficiency within the expert community", "To save ink", "To confuse competitors"], answerIndex: 1 },
-      { question: "How does jargon act as a 'Gatekeeper'?", options: ["It is hard to spell", "It excludes non-experts from participating in the discourse", "It is only used in libraries", "It is very expensive to learn"], answerIndex: 1 },
+      { question: "How does jargon act as a 'Gatekeeper'?", options: ["It excludes non-experts from participating in the discourse", "It is hard to spell", "It is only used in libraries", "It is very expensive to learn"], answerIndex: 0 },
       { question: "According to Karl Popper, good academic writing should be:", options: ["Dense and impressive", "As clear and falsifiable as possible", "Written in Latin", "Full of metaphors"], answerIndex: 1 }
     ],
     deliverablePrompt: "CONCEPT MAP: Identify a term from your favorite subject (e.g. 'Opportunity Cost' in Econ, 'Mitosis' in Bio). Explain how this term is a 'tool' for experts but a 'wall' for beginners."
@@ -231,8 +235,8 @@ This raises a TOK question: Does a language with a strong honorific system make 
     lessonPlan: "Reflect on how you address your teachers in your different languages. Compare the level of 'epistemic authority' granted by the language itself.",
     mcqs: [
       { question: "What is 'Keigo' in Japanese?", options: ["A type of food", "A mandatory honorific system used to show status", "A modern slang", "A musical style"], answerIndex: 1 },
-      { question: "In a hierarchical language, a 'neutral' sentence is:", options: ["Common", "Often grammatically impossible", "Mandatory for everyone", "Used only by children"], answerIndex: 1 },
-      { question: "How might honorifics affect the sharing of new ideas?", options: ["They make it faster", "They may discourage juniors from contradicting seniors", "They have no effect", "They require better memory"], answerIndex: 1 }
+      { question: "In a hierarchical language, a 'neutral' sentence is:", options: ["Often grammatically impossible", "Common", "Mandatory for everyone", "Used only by children"], answerIndex: 0 },
+      { question: "How might honorifics affect the sharing of new ideas?", options: ["They make it faster", "They have no effect", "They may discourage juniors from contradicting seniors", "They require better memory"], answerIndex: 2 }
     ],
     deliverablePrompt: "PERSPECTIVE SHIFT: Imagine a laboratory where the lead scientist must be addressed with extreme honorifics. How might this language prevent a lab assistant from pointing out a mistake in the data?"
   },
@@ -255,8 +259,8 @@ This brings us to a TOK point: Is humor a form of knowledge? It reveals the 'bou
     lessonPlan: "Find a 'Bad Pun' in your native language and attempt to explain the linguistic logic behind it to someone who doesn't speak that language.",
     mcqs: [
       { question: "Homophony is essential for puns because it involves:", options: ["Words that mean the same thing", "Words that sound the same but mean different things", "Loud speaking", "Correct grammar"], answerIndex: 1 },
-      { question: "Why does explaining a joke 'kill' it?", options: ["It takes too long", "The cognitive resolution of the surprise is lost", "It is considered rude", "People forget the start of the joke"], answerIndex: 1 },
-      { question: "Humor is useful for knowers because it reveals:", options: ["Linguistic rules", "The cultural and epistemic boundaries of a community", "How to be a comedian", "Math errors"], answerIndex: 1 }
+      { question: "Why does explaining a joke 'kill' it?", options: ["The cognitive resolution of the surprise is lost", "It takes too long", "It is considered rude", "People forget the start of the joke"], answerIndex: 0 },
+      { question: "Humor is useful for knowers because it reveals:", options: ["Linguistic rules", "The cultural and epistemic boundaries of a community", "How to be a comedian", "Math errors"], answerIndex: 2 }
     ],
     deliverablePrompt: "CONCEPT MAP: Explain why a poem or a joke is often considered 'The Most Untranslatable' type of knowledge. What specifically is lost when the literal meaning is moved but the 'feeling' is not?"
   },
@@ -264,7 +268,7 @@ This brings us to a TOK point: Is humor a form of knowledge? It reveals the 'bou
     id: StationId.ACQUISITION,
     title: "The Cradle of Logic",
     coreIdea: "First Language Acquisition.",
-    readingSource: "Noam Chomsky vs B.F. Skinner / Psycholinguistics",
+    readingSource: "Chomsky vs Skinner / Psycholinguistics",
     reading: `How do we know how to speak? The debate between Noam Chomsky and B.F. Skinner represents one of the most famous clashes in the Human Sciences. 
 
 Skinner, a behaviorist, argued that language acquisition is a matter of 'Nurture.' Children learn language through imitation, reinforcement, and association. If a child says 'Milk' and is given milk, the behavior is reinforced. It is a 'blank slate' theory of the mind.
@@ -278,8 +282,8 @@ This has massive TOK implications: Is our capacity for language (and thus comple
     scaffoldType: 'claim-counter',
     lessonPlan: "Evaluate the 'Feral Child' case studies (like Genie) and what they suggest about the 'Critical Period' for language acquisition.",
     mcqs: [
-      { question: "Chomsky's 'Poverty of the Stimulus' argument means:", options: ["Children are too poor to learn", "The language children hear is not enough to explain their rapid learning", "Adults don't talk to children enough", "Languages are dying out"], answerIndex: 1 },
-      { question: "If a child says 'I breaked it', they are demonstrating:", options: ["Stupidity", "Rule deduction (even if the rule is irregular)", "Imitation of their parents", "A lack of hearing"], answerIndex: 1 },
+      { question: "Chomsky's 'Poverty of the Stimulus' argument means:", options: ["The language children hear is not enough to explain their rapid learning", "Children are too poor to learn", "Adults don't talk to children enough", "Languages are dying out"], answerIndex: 0 },
+      { question: "If a child says 'I breaked it', they are demonstrating:", options: ["Stupidity", "Imitation of their parents", "Rule deduction (even if the rule is irregular)", "A lack of hearing"], answerIndex: 2 },
       { question: "Behaviorism suggests language is learned through:", options: ["Innate biological devices", "Reinforcement and imitation", "Reading books", "Magic"], answerIndex: 1 }
     ],
     deliverablePrompt: "CLAIM: 'Language is a biological instinct like breathing.' COUNTER: 'Language is a cultural tool like building a house.' Which claim has more evidence?"
@@ -303,7 +307,7 @@ This raises a TOK question: Does writing make us smarter, or just lazier (as Pla
     lessonPlan: "Contrast the reliability of a 'Witness Account' in an oral tradition versus a 'Written Document' in a legal setting.",
     mcqs: [
       { question: "Why is knowledge 'Homeostatic' in oral cultures?", options: ["It is kept in a fridge", "The community only remembers what is currently useful", "It is written in stone", "It is very cold"], answerIndex: 1 },
-      { question: "Plato's primary fear of writing was that:", options: ["It would be too expensive", "It would destroy human memory", "People would stop reading", "It would lead to bad poetry"], answerIndex: 1 },
+      { question: "Plato's primary fear of writing was that:", options: ["It would be too expensive", "People would stop reading", "It would lead to bad poetry", "It would destroy human memory"], answerIndex: 3 },
       { question: "Writing allows for 'Decontextualized' knowledge because:", options: ["It is always true", "The message can exist without the presence of the author", "It is easier to understand", "It uses letters"], answerIndex: 1 }
     ],
     deliverablePrompt: "PERSPECTIVE SHIFT: How would your knowledge of 'History' change if you could only learn it from the elders of your village, rather than from a textbook?"
