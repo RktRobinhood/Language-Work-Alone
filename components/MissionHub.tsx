@@ -1,6 +1,8 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { GameState, StationId } from '../types';
 import { STATIONS } from '../constants';
+import { sfx } from '../utils/sfx';
 
 interface MissionHubProps {
   state: GameState;
@@ -11,112 +13,140 @@ interface MissionHubProps {
 }
 
 const MissionHub: React.FC<MissionHubProps> = ({ state, onStartStation, onShowUpgrades, onShowSubmission, isDossierUnlocked }) => {
+  const [selectedNodeId, setSelectedNodeId] = useState<StationId | null>(null);
+  const [isTraveling, setIsTraveling] = useState(false);
+  const [carPos, setCarPos] = useState(state.lastPosition || { x: 50, y: 50 });
+
+  const handleNodeClick = (id: StationId) => {
+    sfx.click();
+    setSelectedNodeId(id);
+  };
+
+  const startJourney = (id: StationId) => {
+    if (isTraveling) return;
+    const s = STATIONS[id];
+    
+    // Check resources
+    const fCost = (s.fuelCost || 0) * (state.unlockedUpgrades.includes('fuel_cell') ? 0.5 : 1);
+    const rCost = Math.max(0, (s.rationCost || 0) - (state.unlockedUpgrades.includes('mre_pack') ? 1 : 0));
+
+    if (state.fuel < fCost || state.rations < rCost) {
+      sfx.error();
+      return;
+    }
+
+    sfx.scan();
+    setIsTraveling(true);
+    setCarPos({ x: s.x, y: s.y });
+    
+    setTimeout(() => {
+      setIsTraveling(false);
+      onStartStation(id);
+    }, 1500);
+  };
+
+  const selectedNode = selectedNodeId ? STATIONS[selectedNodeId] : null;
+
   return (
-    <div className="flex flex-col gap-6 md:gap-8 animate-in fade-in duration-500">
-      <div className="border-b-2 border-[#ffb000] pb-6 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div>
-          <h2 className="text-3xl md:text-4xl font-bold crt-text mb-1 uppercase tracking-tighter">Vault Communications Hub</h2>
-          <div className="flex flex-wrap gap-2 md:gap-4 text-[10px] md:text-[11px] font-mono text-[#ffb000]/60 uppercase">
-             <span>Vault: 76-TOK</span>
-             <span>ID: {state.seed.substring(0, 8)}</span>
-             <span>Nodes Found: {state.discoveredNodes.length} / {Object.keys(STATIONS).length}</span>
-             <span>Stability: {state.dataIntegrity}%</span>
+    <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-12">
+      {/* Survival Stats Bar */}
+      <div className="grid grid-cols-3 gap-2 mb-2">
+        <div className="vault-panel p-2 flex flex-col items-center">
+          <span className="text-[8px] uppercase opacity-50">Fuel Level</span>
+          <span className={`text-xs font-bold ${state.fuel < 20 ? 'text-red-500 animate-pulse' : 'text-blue-400'}`}>{Math.floor(state.fuel)}%</span>
+        </div>
+        <div className="vault-panel p-2 flex flex-col items-center">
+          <span className="text-[8px] uppercase opacity-50">Rations</span>
+          <span className={`text-xs font-bold ${state.rations < 3 ? 'text-red-500 animate-pulse' : 'text-green-400'}`}>{state.rations} units</span>
+        </div>
+        <div className="vault-panel p-2 flex flex-col items-center">
+          <span className="text-[8px] uppercase opacity-50">Mental Integrity</span>
+          <span className={`text-xs font-bold ${state.integrity < 30 ? 'text-red-500 animate-pulse' : 'text-[#ffb000]'}`}>{state.integrity}%</span>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1 space-y-4 order-2 lg:order-1">
+          <div className="vault-panel p-4 h-full flex flex-col">
+            <h3 className="text-xs font-bold mb-4 uppercase border-b border-[#ffb000]/30 pb-2">Active Network</h3>
+            <div className="space-y-2 overflow-y-auto max-h-[250px] lg:max-h-none terminal-scrollbar pr-2">
+              {state.discoveredNodes.map(id => {
+                const s = STATIONS[id];
+                const isCompleted = !!state.stationProgress[id]?.completedAt;
+                return (
+                  <button 
+                    key={id}
+                    onClick={() => handleNodeClick(id)}
+                    className={`w-full text-left p-2 border transition-all flex justify-between items-center ${selectedNodeId === id ? 'bg-[#ffb000]/20 border-[#ffb000]' : 'border-[#ffb000]/10'}`}
+                  >
+                    <div className="truncate">
+                      <p className="text-[10px] font-bold uppercase truncate">{s.title}</p>
+                      <p className="text-[8px] opacity-40 uppercase">{isCompleted ? 'STABLE' : 'PENDING'}</p>
+                    </div>
+                    <span className="text-[12px] ml-2">{isCompleted ? '✓' : '⚡'}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
-        <div className="flex gap-2 w-full md:w-auto">
-           <button onClick={onShowUpgrades} className="vault-btn text-[9px] flex-1">Shop Upgrades</button>
-           {isDossierUnlocked && (
-              <button onClick={onShowSubmission} className="vault-btn text-[9px] flex-1 bg-[#ffb000] text-[#0a0a0a]">Export Dossier</button>
-           )}
-        </div>
-      </div>
 
-      <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
-        {/* Inventory & Tools */}
-        <div className="lg:col-span-1 space-y-6">
-           <div className="vault-panel p-5">
-              <h3 className="text-xs font-bold mb-4 uppercase border-b border-[#ffb000]/30 pb-2">Technical Inventory</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {['Compass of Relativity', 'Animacy Lens', 'Technical Decryptor', 'Censorship Bypass', 'Universal Key', 'Nuance Filter', 'Mnemonic Rhythm', 'Archive Key', 'Etiquette Manual', 'Map Overlay', 'Diagnostic Patch', 'Irony Detector'].map(tool => {
-                  const hasIt = state.earnedTools.includes(tool);
-                  return (
-                    <div key={tool} className={`text-[9px] p-2 border flex items-center justify-center text-center leading-tight transition-all duration-700 ${hasIt ? 'bg-[#ffb000] text-[#0a0a0a] border-white' : 'border-[#ffb000]/10 opacity-10'}`}>
-                      {tool}
-                    </div>
-                  );
-                })}
-              </div>
-           </div>
+        <div className="lg:col-span-2 space-y-4 order-1 lg:order-2">
+          <div className="vault-panel relative h-[350px] md:h-[450px] bg-black/80 overflow-hidden">
+             <div className="absolute inset-0 opacity-5 pointer-events-none" style={{backgroundImage: 'linear-gradient(#ffb000 1px, transparent 1px), linear-gradient(90deg, #ffb000 1px, transparent 1px)', backgroundSize: '40px 40px'}}></div>
+             
+             {Object.values(STATIONS).map((s) => {
+               const isDiscovered = state.discoveredNodes.includes(s.id);
+               const isCompleted = !!state.stationProgress[s.id]?.completedAt;
+               if (!isDiscovered) return <div key={s.id} className="absolute w-1 h-1 bg-white/5 rounded-full" style={{left: `${s.x}%`, top: `${s.y}%`}}></div>;
 
-           <div className="vault-panel p-5 bg-black/40 hidden md:block">
-              <h4 className="text-[10px] font-bold uppercase mb-3 text-[#ffb000]/40">Internal Communications</h4>
-              <div className="terminal-scrollbar max-h-40 overflow-y-auto space-y-1.5 font-mono text-[9px] opacity-60">
-                 {state.log.slice().reverse().map((l, i) => (
-                   <p key={i}>> {new Date(l.t).toLocaleTimeString()}: {l.type}</p>
-                 ))}
-              </div>
-           </div>
-        </div>
-
-        {/* Map - Fog of War logic */}
-        <div className="lg:col-span-2 vault-panel p-2 relative min-h-[450px] md:min-h-[550px] overflow-hidden bg-black/80">
-           {/* Map Grid Background */}
-           <div className="absolute inset-0 opacity-5 pointer-events-none" style={{backgroundImage: 'linear-gradient(#ffb000 1px, transparent 1px), linear-gradient(90deg, #ffb000 1px, transparent 1px)', backgroundSize: '50px 50px'}}></div>
-           
-           {Object.values(STATIONS).map((s) => {
-             const isDiscovered = state.discoveredNodes.includes(s.id);
-             const isCompleted = !!state.stationProgress[s.id]?.completedAt;
-             const hasBenefit = s.benefitFromTool && state.earnedTools.includes(s.benefitFromTool);
-
-             // Hidden node
-             if (!isDiscovered) return (
-                <div key={s.id} className="absolute w-1.5 h-1.5 bg-[#ffb000]/10 rounded-full transform -translate-x-1/2 -translate-y-1/2" style={{left: `${s.x}%`, top: `${s.y}%`}}></div>
-             );
-
-             return (
-               <div 
-                key={s.id} 
-                className="absolute transform -translate-x-1/2 -translate-y-1/2 group"
-                style={{left: `${s.x}%`, top: `${s.y}%`}}
-               >
+               return (
                  <button 
-                  onClick={() => onStartStation(s.id)}
-                  className={`relative w-12 h-12 md:w-14 md:h-14 flex items-center justify-center transition-all duration-300 ${isCompleted ? 'scale-90 opacity-40' : 'hover:scale-125 node-active'}`}
+                  key={s.id}
+                  onClick={() => handleNodeClick(s.id)}
+                  className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center transition-all ${selectedNodeId === s.id ? 'z-20 scale-125' : 'z-10'}`}
+                  style={{left: `${s.x}%`, top: `${s.y}%`}}
                  >
-                   <svg viewBox="0 0 100 100" className={`absolute inset-0 w-full h-full transition-colors ${isCompleted ? 'fill-green-900/50 stroke-green-500' : 'fill-transparent stroke-current stroke-2 text-[#ffb000]'}`}>
-                     <rect x="15" y="15" width="70" height="70" transform="rotate(45 50 50)" />
+                   <svg viewBox="0 0 100 100" className={`absolute inset-0 w-full h-full ${isCompleted ? 'fill-green-900/40 stroke-green-500' : selectedNodeId === s.id ? 'fill-[#ffb000]/20 stroke-[#ffb000]' : 'fill-transparent stroke-[#ffb000]/60'}`}>
+                     <rect x="20" y="20" width="60" height="60" transform="rotate(45 50 50)" strokeWidth="4" />
                    </svg>
-                   <span className="relative z-10 text-[9px] md:text-[10px] font-bold uppercase crt-text">
-                     {isCompleted ? 'OK' : s.id.substring(0, 3)}
-                   </span>
-                   
-                   {/* Info Hover (hidden on tiny screens) */}
-                   <div className="hidden md:block absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 bg-[#0a0a0a] border border-[#ffb000] p-3 text-[10px] opacity-0 group-hover:opacity-100 z-50 pointer-events-none transition-opacity uppercase shadow-2xl">
-                     <p className="font-bold mb-1.5 border-b border-[#ffb000]/20 pb-1">{s.title}</p>
-                     <p className="opacity-70 normal-case mb-2 leading-tight">{s.coreIdea}</p>
-                     {s.rewardTool && <p className="text-cyan-500 text-[8px] mt-1 italic">Reward: {s.rewardTool}</p>}
-                     {hasBenefit && !isCompleted && <p className="text-green-400 text-[8px] mt-1 font-bold">Optimization Active</p>}
-                   </div>
-
-                   {hasBenefit && !isCompleted && (
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500/30 rounded-full animate-ping"></div>
-                   )}
+                   <span className="relative z-10 text-[7px] font-bold">{s.id.substring(0, 3).toUpperCase()}</span>
                  </button>
-               </div>
-             );
-           })}
+               );
+             })}
 
-           <div className="absolute bottom-6 left-6 text-[9px] md:text-[10px] font-mono opacity-20 uppercase tracking-[0.3em]">
-              Explorer Mode Active
-           </div>
+             <div className="absolute w-6 h-6 pointer-events-none z-30 flex items-center justify-center transition-all duration-[1500ms] ease-in-out" style={{ left: `${carPos.x}%`, top: `${carPos.y}%`, transform: `translate(-50%, -50%)` }}>
+                <span className="text-lg filter drop-shadow-[0_0_5px_rgba(255,176,0,0.8)]">🏎️</span>
+             </div>
+          </div>
+
+          <div className={`vault-panel p-4 transition-all min-h-[120px] ${selectedNode ? 'opacity-100' : 'opacity-30'}`}>
+            {selectedNode ? (
+              <div className="flex flex-col h-full justify-between">
+                <div>
+                  <h4 className="text-sm font-bold text-white uppercase">{selectedNode.title}</h4>
+                  <p className="text-[10px] opacity-70 italic mb-3">"{selectedNode.coreIdea}"</p>
+                  <div className="flex gap-4 text-[9px] font-mono mb-4">
+                     <span className="text-blue-400">Fuel: {Math.floor((selectedNode.fuelCost || 0) * (state.unlockedUpgrades.includes('fuel_cell') ? 0.5 : 1))}</span>
+                     <span className="text-green-400">Rations: {Math.max(0, (selectedNode.rationCost || 0) - (state.unlockedUpgrades.includes('mre_pack') ? 1 : 0))}</span>
+                  </div>
+                </div>
+                <button 
+                  disabled={isTraveling || !!state.stationProgress[selectedNode.id]?.completedAt}
+                  onClick={() => startJourney(selectedNode.id)}
+                  className="w-full vault-btn py-2 text-xs bg-[#ffb000] text-black"
+                >
+                  {isTraveling ? 'INITIATING...' : !!state.stationProgress[selectedNode.id]?.completedAt ? 'ARCHIVE SEALED' : 'ENGAGE EXPLORER'}
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center py-6">
+                <p className="text-[10px] font-mono uppercase opacity-50 tracking-widest">Select Destination Node</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-
-      {!isDossierUnlocked && (
-        <div className="mt-4 md:mt-8 text-[10px] md:text-[11px] font-mono text-center uppercase tracking-widest opacity-30 animate-pulse px-4">
-           Complete 50 minutes of discovery to unlock final research dossier export.
-        </div>
-      )}
     </div>
   );
 };

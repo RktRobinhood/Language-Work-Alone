@@ -11,6 +11,16 @@ interface TerminalUpgradesProps {
 }
 
 const TerminalUpgrades: React.FC<TerminalUpgradesProps> = ({ state, onBuy, onBack }) => {
+  const handleBuy = (id: string, cost: number) => {
+    sfx.confirm();
+    onBuy(id, cost);
+  };
+
+  const handleBack = () => {
+    sfx.nav();
+    onBack();
+  };
+
   return (
     <div className="flex flex-col gap-8 animate-in slide-in-from-right-4">
       <div className="border-b-2 border-[#ffb000] pb-4">
@@ -33,7 +43,7 @@ const TerminalUpgrades: React.FC<TerminalUpgradesProps> = ({ state, onBuy, onBac
                 {!isUnlocked ? (
                   <button 
                     disabled={!canAfford}
-                    onClick={() => onBuy(u.id, u.cost)}
+                    onClick={() => handleBuy(u.id, u.cost)}
                     className="vault-btn px-8"
                   >
                     {u.cost} XP
@@ -47,7 +57,7 @@ const TerminalUpgrades: React.FC<TerminalUpgradesProps> = ({ state, onBuy, onBac
         })}
       </div>
       
-      <button onClick={onBack} className="vault-btn py-4 opacity-50 hover:opacity-100">RETURN_TO_STATUS_HUB</button>
+      <button onClick={handleBack} className="vault-btn py-4 opacity-50 hover:opacity-100">RETURN_TO_STATUS_HUB</button>
     </div>
   );
 };

@@ -1,3 +1,4 @@
+
 export enum StationId {
   RELATIVITY = 'relativity',
   METAPHOR = 'metaphor',
@@ -29,7 +30,8 @@ export interface Station {
   title: string;
   coreIdea: string;
   reading: string;
-  youtubeId: string;
+  readingSource?: string;
+  youtubeId?: string;
   mcqs: MCQ[];
   deliverablePrompt: string;
   x: number;
@@ -38,6 +40,8 @@ export interface Station {
   benefitFromTool?: string;
   neighbors: StationId[];
   lessonPlan: string;
+  fuelCost?: number;
+  rationCost?: number;
 }
 
 export interface LogEntry {
@@ -53,6 +57,7 @@ export interface GameState {
   discoveredNodes: StationId[];
   earnedTools: string[];
   currentStationId: StationId | null;
+  lastPosition: { x: number, y: number };
   stationProgress: Record<string, {
     startTime: number;
     completedAt?: number;
@@ -61,7 +66,9 @@ export interface GameState {
   }>;
   xp: number;
   clearanceLevel: number;
-  dataIntegrity: number;
+  integrity: number; 
+  fuel: number;      
+  rations: number;   
   log: LogEntry[];
   unlockedUpgrades: string[];
 }
@@ -71,5 +78,5 @@ export interface Puzzle {
   type: 'cipher' | 'pattern' | 'match' | 'anagram';
   prompt: string;
   solution: string;
-  reward: string;
+  reward: { xp?: number, fuel?: number, rations?: number, integrity?: number };
 }

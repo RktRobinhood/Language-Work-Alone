@@ -1,254 +1,246 @@
+
 import { Station, StationId, Puzzle } from './types';
+
+export const UPGRADES = [
+  { id: 'rad_mask', name: 'Radiation Mask', desc: 'Ignore first wrong answer in validations.', cost: 400, icon: '🎭' },
+  { id: 'pip_boy', name: 'PIP-BOY 3000', desc: 'Increases XP yield by 15%.', cost: 800, icon: '📟' },
+  { id: 'fuel_cell', name: 'Atomic Fuel Cell', desc: 'Reduces travel fuel consumption by 50%.', cost: 600, icon: '⚡' },
+  { id: 'mre_pack', name: 'Vault MRE Pack', desc: 'Nodes cost 1 fewer ration to explore.', cost: 500, icon: '🍱' }
+];
+
+export const PUZZLES: Puzzle[] = [
+  { id: 'p1', type: 'anagram', prompt: "UNSCRAMBLE: 'A-G-N-U-A-G-E-L'", solution: "language", reward: { fuel: 20 } },
+  { id: 'p2', type: 'pattern', prompt: "SEQUENCE: Sound -> Syllable -> Word -> ?", solution: "sentence", reward: { rations: 5 } },
+  { id: 'p3', type: 'match', prompt: "ANALOGY: Newspeak is to Control as Jargon is to ?", solution: "exclusion", reward: { xp: 200 } }
+];
 
 export const STATIONS: Record<StationId, Station> = {
   [StationId.RELATIVITY]: {
     id: StationId.RELATIVITY,
-    title: "Shelter Navigation",
-    coreIdea: "Your brain's GPS depends on your words.",
+    title: "Sapir-Whorf Shelter",
+    coreIdea: "Language isn't a window, it's the frame.",
+    readingSource: "Lera Boroditsky, 'How Language Shapes Thought'",
+    reading: "In some languages, directions are cardinal (North/South) rather than relative (Left/Right). This forces speakers to maintain constant spatial awareness. Their mind structures space—and therefore navigation and memory—completely differently than relative speakers. Language is a cognitive tool that determines which data points your brain prioritizes.",
     youtubeId: "RKK7wGAYP6k",
     x: 10, y: 30,
+    fuelCost: 10, rationCost: 2,
     rewardTool: "Compass of Relativity",
     neighbors: [StationId.ACQUISITION, StationId.CREE, StationId.POLITENESS],
-    lessonPlan: "Explore linguistic relativity and how spatial directions (cardinal vs relative) change cognitive performance.",
-    reading: `BROADCAST LOG 702: In some vaults, they don't say 'Left' or 'Right'. They only use cardinal directions like 'North' or 'East'. This changes how they see the world. 
-
-    If your language doesn't have a word for a color, you actually find it harder to distinguish that color from others. This is the heart of TOK Language study: Does language describe reality, or does it construct it?`,
+    lessonPlan: "Analyze the influence of linguistic structure on spatial cognition and memory.",
     mcqs: [
-      { question: "How do cardinal direction speakers stay oriented in the dark?", options: ["Luck", "Mental magnetic tracking", "They count steps", "Flashlights"], answerIndex: 1 },
-      { question: "What does the 'Bridge' study tell us about gendered nouns?", options: ["Nothing", "Language assigns human traits to objects", "German is harder", "Bridges are dangerous"], answerIndex: 1 },
-      { question: "In TOK, Linguistic Relativity suggests language is:", options: ["A tool", "A mirror", "A framework", "Irrelevant"], answerIndex: 2 }
+      { question: "How do cardinal-direction speakers orient themselves?", options: ["By lucky guess", "Constant mental compass tracking", "Looking at the sun only", "They don't"], answerIndex: 1 },
+      { question: "What does this tell us about knowledge?", options: ["Knowledge is universal", "Language mediates the way we perceive reality", "Math is the only truth", "Grammar is irrelevant"], answerIndex: 1 },
+      { question: "Linguistic Relativity suggests:", options: ["Language is a mirror", "Language is a tool/framework", "Translation is perfect", "All brains are identical"], answerIndex: 1 }
     ],
-    deliverablePrompt: "DIARY ENTRY: Your vault just deleted the word 'Fear'. How would you explain a danger to a child without that word? Does the child still feel afraid?"
+    deliverablePrompt: "DIARY ENTRY: Your vault just deleted the word 'Yesterday'. How do you explain history to a child now?"
   },
   [StationId.CREE]: {
     id: StationId.CREE,
-    title: "The Breathing World",
-    coreIdea: "Is the wasteland an 'It' or a 'Who'?",
+    title: "The Living Grammar",
+    coreIdea: "The Grammar of Animacy.",
+    readingSource: "Robin Wall Kimmerer, 'Braiding Sweetgrass'",
+    reading: "In many Indigenous languages like Potawatomi, nouns for natural objects like trees and berries are 'animate'—conjugated like people. In English, they are 'it'. This shift from person to object changes the ethical responsibility of the knower. If a tree is a 'who', you cannot easily treat it as mere commodity.",
     youtubeId: "yB2S_S-kS30",
-    x: 35, y: 55,
+    x: 30, y: 55,
+    fuelCost: 15, rationCost: 3,
     rewardTool: "Animacy Lens",
-    benefitFromTool: "Compass of Relativity",
     neighbors: [StationId.RELATIVITY, StationId.ENDANGERED, StationId.POLITENESS],
-    lessonPlan: "Analyze the 'Grammar of Animacy' and how treating nature as a person vs an object changes ethics.",
-    reading: `NATURE LOG: Many Indigenous languages use 'Who' for mountains and trees, not 'It'. If you call a tree 'It', you can chop it down. If you call it 'Grandmother', your relationship changes.
-
-    TOK Question: How does our grammar change our ethical responsibility to the environment? Is knowledge objective if it's tied to respect?`,
+    lessonPlan: "Examine how grammar defines the relationship between the knower and the natural world.",
     mcqs: [
-      { question: "How does English categorize most natural objects?", options: ["People", "Inanimate things", "Spirits", "Action words"], answerIndex: 1 },
-      { question: "Animacy suggests that language can:", options: ["Make us rich", "Determine moral relationships", "Fix climate", "Only describe humans"], answerIndex: 1 },
-      { question: "Which TOK concept does this align with?", options: ["Math", "Linguistic Relativity and Ethics", "Objectivity", "Memory"], answerIndex: 1 }
+      { question: "What does 'Animacy' mean in this context?", options: ["Moving quickly", "Treating objects as living beings/subjects", "Drawing cartoons", "Loud speaking"], answerIndex: 1 },
+      { question: "How does English categorize a bay?", options: ["As a 'who'", "As an 'it' (object)", "As a spirit", "As a verb"], answerIndex: 1 },
+      { question: "Shifting to animate grammar changes:", options: ["Speed of speech", "Ethical relationship to nature", "Price of wood", "Nothing"], answerIndex: 1 }
     ],
-    deliverablePrompt: "RESTORATION PLAN: Describe your water filter as if it were a living person. Does this make you more likely to protect it?"
-  },
-  [StationId.JARGON]: {
-    id: StationId.JARGON,
-    title: "Technical Walls",
-    coreIdea: "Words as gatekeepers between shelters.",
-    youtubeId: "8iXat9_oOxs",
-    x: 55, y: 15,
-    rewardTool: "Technical Decryptor",
-    neighbors: [StationId.ACQUISITION, StationId.METAPHOR, StationId.NEWS_PEAK],
-    lessonPlan: "Identify how specialized language creates exclusivity and power dynamics in communities of knowers.",
-    reading: `OVERSEER MEMO: The Engineers are using words like 'Asymptotic' to keep Scavengers from understanding the filters. 
-
-    Jargon allows experts to talk fast, but it creates an Out Group. This is an ethical problem in the distribution of knowledge.`,
-    mcqs: [
-      { question: "What is the primary ethical problem with jargon?", options: ["Spelling", "Exclusion from knowledge", "Cost", "Science"], answerIndex: 1 },
-      { question: "When is jargon actually good?", options: ["When it's confusing", "Precision for experts", "Poetry", "Never"], answerIndex: 1 },
-      { question: "Which TOK Knower category uses Jargon most?", options: ["Beginners", "Communities of Knowers", "Individual Knowers", "Presidents"], answerIndex: 1 }
-    ],
-    deliverablePrompt: "EXPERT LOG: Explain a complex hobby (like gaming or coding) to a survivor without using any specialized words. Why is it so difficult?"
-  },
-  [StationId.NEWS_PEAK]: {
-    id: StationId.NEWS_PEAK,
-    title: "Ministry of Truth",
-    coreIdea: "Control the dictionary, control the mind.",
-    youtubeId: "52N6p63pveU",
-    x: 80, y: 25,
-    rewardTool: "Censorship Bypass",
-    benefitFromTool: "Technical Decryptor",
-    neighbors: [StationId.JARGON, StationId.TRANSLATION, StationId.HUMOR],
-    lessonPlan: "Examine Orwellian Newspeak and euphemisms. How does limiting vocabulary limit human thought?",
-    reading: `ARCHIVE 1984: If you don't have the word 'Freedom', can you even imagine being free? Euphemisms are soft words for hard truths.
-
-    Example: We don't say 'Rations cut'. We say 'Nutrient Efficiency Re-alignment'. If we control the words, we control the reality.`,
-    mcqs: [
-      { question: "What is the goal of Newspeak?", options: ["Poetry", "Making thought impossible", "Teaching", "Selling books"], answerIndex: 1 },
-      { question: "What is 'Collateral Damage' a euphemism for?", options: ["Gifts", "Accidental deaths", "Houses", "Cars"], answerIndex: 1 },
-      { question: "How does this affect Shared Knowledge?", options: ["Clearer", "Manipulates moral compass", "No effect", "Facts"], answerIndex: 1 }
-    ],
-    deliverablePrompt: "CENSORSHIP TASK: The Overseer wants to rename 'Exile' to something positive. Propose a name and explain how it hides the terrifying reality."
-  },
-  [StationId.ACQUISITION]: {
-    id: StationId.ACQUISITION,
-    title: "Born to Talk",
-    coreIdea: "Is language a chip or a skill?",
-    youtubeId: "7Cgpfw4z8cw",
-    x: 5, y: 15,
-    rewardTool: "Universal Key",
-    neighbors: [StationId.RELATIVITY, StationId.JARGON],
-    lessonPlan: "Discuss Universal Grammar vs Empiricism. Is the ability to speak innate or learned from the vault environment?",
-    reading: `MEDICAL LOG: Children learn to talk without being taught. Chomsky argues we have a 'Language Acquisition Device'—a mental circuit board.
-
-    If a child is never spoken to, they never learn. Is language biological or social? This defining mystery affects how we understand the 'Human Knower'.`,
-    mcqs: [
-      { question: "What is Chomsky's Universal Grammar?", options: ["A book", "Hard-wired learning ability", "English only", "A program"], answerIndex: 1 },
-      { question: "What is the Critical Period?", options: ["Lunch", "Childhood learning window", "Old age", "War"], answerIndex: 1 },
-      { question: "Language Acquisition is a mystery of:", options: ["Math", "The nature of the knower", "History", "Physics"], answerIndex: 1 }
-    ],
-    deliverablePrompt: "NURSERY PLAN: If a child grows up hearing only robot beeps, will they develop language? Defend your answer using TOK concepts."
-  },
-  [StationId.TRANSLATION]: {
-    id: StationId.TRANSLATION,
-    title: "Lost in Frequency",
-    coreIdea: "Perfect translation is a myth.",
-    youtubeId: "vN-L9_T_yW0",
-    x: 85, y: 5,
-    rewardTool: "Nuance Filter",
-    benefitFromTool: "Censorship Bypass",
-    neighbors: [StationId.NEWS_PEAK, StationId.ORAL_TRADITION],
-    lessonPlan: "Analyze the gap between denotation and connotation. Why are some words 'untranslatable'?",
-    reading: `COMMUNICATIONS: Words have connotations (feelings) not just denotations (definitions). 
-
-    An AI can translate 'House', but misses the feeling of 'Sanctuary'. Knowledge is tied to the flavor of the word. Is a thought the same if you change the language?`,
-    mcqs: [
-      { question: "What is 'Denotation'?", options: ["Feelings", "Literal definition", "A bomb", "Whispering"], answerIndex: 1 },
-      { question: "Can there be a perfect translation?", options: ["Yes", "No, culture differs", "AI only", "Poetry"], answerIndex: 1 },
-      { question: "Indeterminacy of Translation suggests:", options: ["Easy", "Multiple correct ways", "Illegal", "Fixed facts"], answerIndex: 1 }
-    ],
-    deliverablePrompt: "GLOSSARY: The word 'Hope' translates to 'Unlikely Probability' in Technical. What human knowledge is lost in this shift?"
-  },
-  [StationId.ORAL_TRADITION]: {
-    id: StationId.ORAL_TRADITION,
-    title: "The Last Singers",
-    coreIdea: "Knowledge in song, not servers.",
-    youtubeId: "fSPlmpxf6H0",
-    x: 90, y: 85,
-    rewardTool: "Mnemonic Rhythm",
-    benefitFromTool: "Nuance Filter",
-    neighbors: [StationId.TRANSLATION, StationId.ENDANGERED],
-    lessonPlan: "Compare oral traditions to written history. How does melody and social performance protect knowledge from corruption?",
-    reading: `DATA CORRUPTION: The servers are dead. All we have left are songs. 
-
-    Oral tradition uses rhythm and community to store data perfectly for thousands of years. Literacy lets us store facts externally, but we lose the 'Living Relationship'.`,
-    mcqs: [
-      { question: "How do oral cultures prevent data loss?", options: ["Sand writing", "Rhyme and song", "They don't", "Stone"], answerIndex: 1 },
-      { question: "What is 'Externalization' of knowledge?", options: ["Screaming", "Books/Computers", "Talking", "Thinking"], answerIndex: 1 },
-      { question: "Benefit of Orality:", options: ["Faster", "Social context and identity", "Objective", "Cheaper"], answerIndex: 1 }
-    ],
-    deliverablePrompt: "MNEMONIC: Create a 4-line rhyming poem to teach a dweller how to survive a radiation storm. Why is rhyme safer than a manual?"
-  },
-  [StationId.ENDANGERED]: {
-    id: StationId.ENDANGERED,
-    title: "Silent Echoes",
-    coreIdea: "A dying language is a burning library.",
-    youtubeId: "qV3N5K_K7qE",
-    x: 70, y: 75,
-    rewardTool: "Archive Key",
-    benefitFromTool: "Animacy Lens",
-    neighbors: [StationId.CREE, StationId.ORAL_TRADITION, StationId.HUMOR],
-    lessonPlan: "Examine how traditional ecological knowledge is lost when languages vanish. Discuss linguistic imperialism.",
-    reading: `ARCHIVE 404: 50% of languages are gone. With them, medicinal knowledge of wasteland plants is lost. 
-
-    Some languages have 20 words for 'Sand'. These are data points for survival. To lose the language is to lose the knowledge.`,
-    mcqs: [
-      { question: "Why is linguistic diversity important?", options: ["Sounds nice", "Encodes different solutions", "Law", "Isn't"], answerIndex: 1 },
-      { question: "What is Linguistic Imperialism?", options: ["Learning", "One language erasing others", "Loudness", "Big words"], answerIndex: 1 },
-      { question: "In TOK, language loss is a loss of:", options: ["Letters", "Shared Human Knowledge", "Money", "Paper"], answerIndex: 1 }
-    ],
-    deliverablePrompt: "PRESERVATION: You found a diary in a language only 1 person speaks. Why should we spend energy saving it instead of teaching them ours?"
-  },
-  [StationId.POLITENESS]: {
-    id: StationId.POLITENESS,
-    title: "Vault Etiquette",
-    coreIdea: "Hierarchy in greetings.",
-    youtubeId: "CAnvY-7O-6M",
-    x: 25, y: 55,
-    rewardTool: "Etiquette Manual",
-    benefitFromTool: "Animacy Lens",
-    neighbors: [StationId.CREE, StationId.METAPHOR, StationId.RELATIVITY],
-    lessonPlan: "Explore Face Theory and honorifics. How does language maintain or challenge social power in the vault?",
-    reading: `SOCIAL LOG: Some languages use different words based on age. Politeness help us navigate conflict. 
-
-    Language isn't just for facts; it's for managing relationships. If we stop being polite, does our community fall apart?`,
-    mcqs: [
-      { question: "What does 'Face' mean in linguistics?", options: ["Head", "Public image/esteem", "Mask", "Nothing"], answerIndex: 1 },
-      { question: "How does Indirectness function?", options: ["Waste", "Saves face for requests", "Lying", "Poets"], answerIndex: 1 },
-      { question: "Is politeness 'Objective'?", options: ["Yes", "Culturally situated", "Maybe", "Vault only"], answerIndex: 1 }
-    ],
-    deliverablePrompt: "PROTOCOL: Design a 'Neutral' greeting for all dwellers. How does this change how the Overseer communicates orders?"
+    deliverablePrompt: "ETHICS LOG: Describe your water filter as a 'Who'. Does your care for it change?"
   },
   [StationId.METAPHOR]: {
     id: StationId.METAPHOR,
-    title: "Cognitive Maps",
-    coreIdea: "Metaphors are how we process reality.",
+    title: "The Cognitive Map",
+    coreIdea: "Metaphors we live by.",
+    readingSource: "George Lakoff & Mark Johnson",
+    reading: "We say 'Argument is War'. We attack points, defend positions, and win. If we saw 'Argument is Dance', the goal would be beauty and cooperation, not victory. Metaphor isn't just poetry; it's the primary way we understand abstract concepts like time, love, and logic.",
     youtubeId: "hP0_idXWj60",
-    x: 35, y: 10,
+    x: 35, y: 15,
+    fuelCost: 10, rationCost: 2,
     rewardTool: "Map Overlay",
-    benefitFromTool: "Etiquette Manual",
     neighbors: [StationId.POLITENESS, StationId.JARGON, StationId.AI_MT],
-    lessonPlan: "Analyze how metaphors frame abstract concepts like time, illness, and knowledge. Identify hidden biases.",
-    reading: `LOG 101: We say 'Time is money'. In the vault, we say 'Time is oxygen'. If you waste time, you choke the community. 
-
-    Metaphors are 'Mental Models'. They explain abstract things through concrete ones. But metaphors also hide things. If time is oxygen, can you 'save' it?`,
+    lessonPlan: "Identify how metaphorical framing shapes reasoning and behavior.",
     mcqs: [
-      { question: "Why use metaphors in science?", options: ["Beauty", "Explain complex through familiar", "Hide truth", "Math lack"], answerIndex: 1 },
-      { question: "Danger of 'War' metaphor in medicine?", options: ["Loud", "Frames death as defeat", "Saves lives", "None"], answerIndex: 1 },
-      { question: "Metaphors are a WOK through:", options: ["Senses", "Reason and Language", "Faith", "Memory"], answerIndex: 1 }
+      { question: "Why is 'Time is Money' a metaphor?", options: ["They look alike", "It maps value/scarcity to duration", "Time is paper", "It isn't"], answerIndex: 1 },
+      { question: "A 'War' metaphor in medicine can lead to:", options: ["Better health", "Seeing death as 'defeat' or 'failure'", "Cheaper drugs", "More doctors"], answerIndex: 1 },
+      { question: "Metaphors help us understand:", options: ["Nothing", "Abstract through concrete", "Concrete through abstract", "Colors"], answerIndex: 1 }
     ],
-    deliverablePrompt: "METAPHOR SWAP: Describe 'Learning' using a 'War' metaphor, then a 'Gardening' metaphor. How does the feeling of knowledge change?"
+    deliverablePrompt: "METAPHOR SWAP: Explain 'Knowledge' using a 'Building' metaphor vs a 'Flowing Water' metaphor."
+  },
+  [StationId.NEWS_PEAK]: {
+    id: StationId.NEWS_PEAK,
+    title: "The Ministry Archives",
+    coreIdea: "Limiting vocabulary limits thought.",
+    readingSource: "George Orwell, '1984'",
+    reading: "The goal of Newspeak was to make thoughtcrime impossible by removing words like 'freedom' and 'rebellion'. If the concept doesn't have a label, can the mind truly conceive of it? By shrinking the dictionary, the state shrinks the range of human consciousness.",
+    youtubeId: "52N6p63pveU",
+    x: 80, y: 25,
+    fuelCost: 25, rationCost: 4,
+    rewardTool: "Censorship Bypass",
+    neighbors: [StationId.JARGON, StationId.TRANSLATION, StationId.HUMOR],
+    lessonPlan: "Investigate the relationship between vocabulary size and the capacity for critical thinking.",
+    mcqs: [
+      { question: "What is a 'euphemism'?", options: ["A loud word", "A soft word used to hide a harsh reality", "A new word", "A spell"], answerIndex: 1 },
+      { question: "Shrinking language aims to:", options: ["Save paper", "Make thought easier", "Limit the range of consciousness", "Help kids"], answerIndex: 2 },
+      { question: "In TOK, Newspeak represents:", options: ["Fun slang", "Language as a tool for power/control", "Good grammar", "Literacy"], answerIndex: 1 }
+    ],
+    deliverablePrompt: "CENSORSHIP TASK: The Overseer calls a starvation 'Nutrient Efficiency'. What truth is lost?"
+  },
+  [StationId.TRANSLATION]: {
+    id: StationId.TRANSLATION,
+    title: "The Frequency Gap",
+    coreIdea: "Lost in Translation.",
+    readingSource: "W.V.O. Quine, 'Word and Object'",
+    reading: "The 'Indeterminacy of Translation' suggests that we can never be 100% sure we've captured the exact nuance of a word from another culture. We translate 'House' to 'Casa', but the cultural baggage of a home differs. Knowledge is culturally situated and flavor-dependent.",
+    youtubeId: "vN-L9_T_yW0",
+    x: 85, y: 5,
+    fuelCost: 20, rationCost: 3,
+    rewardTool: "Nuance Filter",
+    neighbors: [StationId.NEWS_PEAK, StationId.ORAL_TRADITION],
+    lessonPlan: "Evaluate the limits of translation in preserving meaning across cultures.",
+    mcqs: [
+      { question: "What is 'Indeterminacy'?", options: ["Perfect clarity", "Inability to perfectly map one word to another", "Fast typing", "A type of radio"], answerIndex: 1 },
+      { question: "Is a perfect translation possible?", options: ["Yes, for science", "Rarely, due to connotation and context", "Only for AI", "Always"], answerIndex: 1 },
+      { question: "Why does it matter for TOK?", options: ["Grammar tests", "Knowledge changes when the frame changes", "Money", "History"], answerIndex: 1 }
+    ],
+    deliverablePrompt: "GLOSSARY: The word 'Hope' translates to 'Unlikely Probability'. What is lost?"
+  },
+  [StationId.ORAL_TRADITION]: {
+    id: StationId.ORAL_TRADITION,
+    title: "The Songline Echo",
+    coreIdea: "Knowledge in the song, not the script.",
+    readingSource: "Lynne Kelly, 'The Memory Code'",
+    reading: "Oral cultures used 'Songlines' and rhythm to store massive amounts of data—biological, historical, and navigational—for thousands of years without a single book. In the wasteland, if the servers fail, only the songs remain. Literacy is an external storage; orality is a living relationship.",
+    youtubeId: "fSPlmpxf6H0",
+    x: 90, y: 85,
+    fuelCost: 30, rationCost: 5,
+    rewardTool: "Mnemonic Rhythm",
+    neighbors: [StationId.TRANSLATION, StationId.ENDANGERED],
+    lessonPlan: "Compare the reliability and social function of oral vs written knowledge storage.",
+    mcqs: [
+      { question: "How do oral cultures store facts?", options: ["Drawing in sand", "Rhyme, song, and place-association", "They don't", "Tape recorders"], answerIndex: 1 },
+      { question: "What is the benefit of a songline?", options: ["Entertainment", "Data integrity over generations", "It's loud", "It's fast"], answerIndex: 1 },
+      { question: "Written knowledge is often:", options: ["More social", "Externalized from the knower", "Temporary", "Useless"], answerIndex: 1 }
+    ],
+    deliverablePrompt: "MNEMONIC: Create a 4-line rhyme to teach someone how to filter water. Why is this safer than a book?"
+  },
+  [StationId.ENDANGERED]: {
+    id: StationId.ENDANGERED,
+    title: "Silent Libraries",
+    coreIdea: "Losing a language is losing a database.",
+    readingSource: "Wade Davis, 'Wayfinders'",
+    reading: "Every language is an old-growth forest of the mind. When a language dies, we lose traditional ecological knowledge (TEK)—the names and uses of thousands of plants that may not exist in any other database. Linguistic diversity is a survival strategy for the human species.",
+    youtubeId: "qV3N5K_K7qE",
+    x: 70, y: 75,
+    fuelCost: 15, rationCost: 3,
+    rewardTool: "Archive Key",
+    neighbors: [StationId.CREE, StationId.ORAL_TRADITION, StationId.HUMOR],
+    lessonPlan: "Assess the consequences of linguistic extinction on shared human knowledge.",
+    mcqs: [
+      { question: "What is TEK?", options: ["Tech equipment", "Traditional Ecological Knowledge", "Total Energy", "Talk"], answerIndex: 1 },
+      { question: "When a language dies, we lose:", options: ["Letters", "A unique way of solving human problems", "Sound", "Dictionaries"], answerIndex: 1 },
+      { question: "Linguistic Imperialism is:", options: ["Learning languages", "One language erasing others", "Big words", "Royalty"], answerIndex: 1 }
+    ],
+    deliverablePrompt: "PRESERVATION: You found a plant diary in a dead language. Why should we save it?"
+  },
+  [StationId.JARGON]: {
+    id: StationId.JARGON,
+    title: "Technical Barriers",
+    coreIdea: "Jargon as a gatekeeper.",
+    readingSource: "Academic Sociology of Knowledge",
+    reading: "Specialized language (jargon) allows experts to communicate precisely, but it also creates 'out-groups'. If you don't speak 'Medical' or 'Legal', you are barred from the knowledge required to defend your life. Jargon is both a tool for efficiency and a wall for exclusion.",
+    youtubeId: "8iXat9_oOxs",
+    x: 55, y: 15,
+    fuelCost: 12, rationCost: 2,
+    rewardTool: "Technical Decryptor",
+    neighbors: [StationId.ACQUISITION, StationId.METAPHOR, StationId.NEWS_PEAK],
+    lessonPlan: "Analyze the ethical implications of specialized language in professional communities.",
+    mcqs: [
+      { question: "Primary benefit of jargon?", options: ["Confusing others", "Precision among experts", "Cool names", "Money"], answerIndex: 1 },
+      { question: "Primary ethical drawback?", options: ["Spelling", "Exclusion from essential knowledge", "It's slow", "None"], answerIndex: 1 },
+      { question: "Communities of Knowers use jargon to:", options: ["Hide", "Define boundaries and status", "Play games", "Rest"], answerIndex: 1 }
+    ],
+    deliverablePrompt: "EXPERT LOG: Explain how a car works to a child without using 'Engine' or 'Piston'."
+  },
+  [StationId.POLITENESS]: {
+    id: StationId.POLITENESS,
+    title: "The Etiquette Vault",
+    coreIdea: "Language as a social regulator.",
+    readingSource: "Brown & Levinson, 'Politeness Theory'",
+    reading: "Politeness isn't just 'niceness'; it's 'Face Management'. We use indirect language to save the other person's self-esteem. In a high-stakes vault environment, these linguistic cues prevent social collapse and maintain hierarchy. Knowledge of how to speak is knowledge of how to survive others.",
+    youtubeId: "CAnvY-7O-6M",
+    x: 25, y: 55,
+    fuelCost: 10, rationCost: 2,
+    rewardTool: "Etiquette Manual",
+    neighbors: [StationId.CREE, StationId.METAPHOR, StationId.RELATIVITY],
+    lessonPlan: "Explore how linguistic norms regulate social interactions and power dynamics.",
+    mcqs: [
+      { question: "What is 'Face' in linguistics?", options: ["Head", "Social self-esteem and standing", "A mask", "Nothing"], answerIndex: 1 },
+      { question: "Indirectness helps to:", options: ["Waste time", "Mitigate social friction", "Lie", "Be funny"], answerIndex: 1 },
+      { question: "Politeness is:", options: ["Universal", "Culturally specific", "Natural", "Useless"], answerIndex: 1 }
+    ],
+    deliverablePrompt: "PROTOCOL: The Overseer is angry. Write a 2-sentence request for food that saves his 'Face'."
+  },
+  [StationId.ACQUISITION]: {
+    id: StationId.ACQUISITION,
+    title: "The Silent Nursery",
+    coreIdea: "Is language biological or social?",
+    readingSource: "Noam Chomsky vs B.F. Skinner",
+    reading: "Are we born with a 'Universal Grammar' chip, or is language just a habit we learn from the vault? The 'Critical Period' suggests if we don't hear words by age 7, we may never fully learn. Is language a part of our biology or a product of our environment?",
+    youtubeId: "7Cgpfw4z8cw",
+    x: 5, y: 15,
+    fuelCost: 8, rationCost: 1,
+    rewardTool: "Universal Key",
+    neighbors: [StationId.RELATIVITY, StationId.JARGON],
+    lessonPlan: "Debate the 'Nature vs Nurture' arguments in language development.",
+    mcqs: [
+      { question: "Chomsky's 'LAD' stands for:", options: ["Late Adult Development", "Language Acquisition Device", "Logic and Data", "Little Apple Door"], answerIndex: 1 },
+      { question: "The Critical Period implies:", options: ["Learning is easy", "There is a window for brain development", "Old people are smarter", "No learning"], answerIndex: 1 },
+      { question: "Is language hardware or software?", options: ["Hardware only", "Software only", "Likely hardware with social software", "Neither"], answerIndex: 2 }
+    ],
+    deliverablePrompt: "NURSERY PLAN: If a child grows up hearing only robot beeps, will they talk? Why?"
   },
   [StationId.AI_MT]: {
     id: StationId.AI_MT,
-    title: "The Broken Chip",
-    coreIdea: "Machine bias is human bias.",
+    title: "The Broken Algorithm",
+    coreIdea: "Machine bias in translation.",
+    readingSource: "Ethical AI Research",
+    reading: "AI translation isn't neutral. It learns from human data. If the dataset is biased (e.g., 'Doctor' usually maps to 'He'), the AI reinforces that bias as 'fact'. When we rely on machines to mediate our knowledge, we inherit their hidden distortions.",
     youtubeId: "fMlzZpM0Hsg",
     x: 15, y: 88,
+    fuelCost: 20, rationCost: 2,
     rewardTool: "Diagnostic Patch",
-    benefitFromTool: "Map Overlay",
     neighbors: [StationId.METAPHOR, StationId.HUMOR],
-    lessonPlan: "Investigate algorithmic bias in translation. Who is responsible for 'Machine Truth'?",
-    reading: `TECHNICAL REPORT: The translator says 'Doctor' is always 'He'. AI calculates probability from old world data.
-
-    If the old world was biased, the AI will be too. This is the Ethics of AI. Who is responsible for the machine's version of truth?`,
+    lessonPlan: "Investigate the ethical responsibility of designers in algorithmic knowledge mediation.",
     mcqs: [
-      { question: "Where does AI bias come from?", options: ["Evil robots", "Human training data", "Magic", "Electricity"], answerIndex: 1 },
-      { question: "What is 'Semantic Flattening'?", options: ["Paper", "AI choosing the common word and losing nuance", "Typing", "Vowels"], answerIndex: 1 },
-      { question: "In TOK, AI translation is:", options: ["Authority", "Neutral", "Mediated interpretation", "Pure fact"], answerIndex: 2 }
+      { question: "Where does AI bias come from?", options: ["Evil robots", "Human datasets", "Math", "Electricity"], answerIndex: 1 },
+      { question: "Semantic Flattening is:", options: ["Writing on paper", "Losing nuance in favor of common words", "Typing fast", "Silence"], answerIndex: 1 },
+      { question: "AI 'truth' is actually:", options: ["Objective", "A mathematical probability based on past data", "Magic", "Perfect"], answerIndex: 1 }
     ],
-    deliverablePrompt: "PATCH LOG: You find an AI that only speaks in 'Corporate Marketing'. How would it describe a starving survivor? Why is this a dangerous distortion?"
+    deliverablePrompt: "PATCH LOG: You find an AI that hates the word 'Friend'. How does it describe a survivor?"
   },
   [StationId.HUMOR]: {
     id: StationId.HUMOR,
-    title: "The Glitch",
-    coreIdea: "Humor requires shared context.",
+    title: "The Glitch Node",
+    coreIdea: "Irony as a boundary marker.",
+    readingSource: "Henri Bergson, 'Laughter'",
+    reading: "Humor is a tool for social cohesion. To 'get' a joke, you must share the same cultural context and knowledge. Irony requires knowing both the literal meaning and the intended opposite. It is the ultimate test of a 'Community of Knowers'.",
     youtubeId: "K_GIsbMv1K0",
     x: 65, y: 45,
+    fuelCost: 12, rationCost: 2,
     rewardTool: "Irony Detector",
-    benefitFromTool: "Diagnostic Patch",
     neighbors: [StationId.AI_MT, StationId.ENDANGERED, StationId.NEWS_PEAK],
-    lessonPlan: "Analyze the mechanics of irony. Why is humor a boundary marker for communities of knowers?",
-    reading: `RECREATION LOG: Why is a joke hard to translate? It relies on 'Incongruity' (surprises). 
-
-    If a machine doesn't understand Irony, it can't understand human truth. Humor marks the boundary of a 'Community of Knowers'. To get the joke, you have to be 'us'.`,
+    lessonPlan: "Analyze how humor defines the boundaries of specific knowledge communities.",
     mcqs: [
-      { question: "What is Incongruity Theory?", options: ["Same", "Gap between expectation and reality", "Math", "Bad"], answerIndex: 1 },
-      { question: "Why is irony hard for AI?", options: ["Power", "Requires understanding opposite meaning", "Fast", "No mouth"], answerIndex: 1 },
-      { question: "In TOK, humor is a way to:", options: ["Hide facts", "Test shared cultural boundaries", "Forget", "Win"], answerIndex: 1 }
+      { question: "What is Incongruity Theory?", options: ["Same thing", "Gap between expectation and reality", "Loudness", "Math"], answerIndex: 1 },
+      { question: "Why is irony hard for AI?", options: ["Too fast", "Requires multi-layered context/intent", "No mouth", "No ears"], answerIndex: 1 },
+      { question: "Humor acts as a:", options: ["Wall", "Boundary marker for 'in-groups'", "Lie", "Distraction"], answerIndex: 1 }
     ],
-    deliverablePrompt: "COMEDY SET: Write a short 'Vault Joke' only dwellers would get. Why would a surface survivor find it confusing?"
+    deliverablePrompt: "COMEDY SET: Write a joke only a vault survivor would find funny. Why?"
   }
 };
-
-export const UPGRADES = [
-  { id: 'rad_mask', name: 'Radiation Mask', cost: 400, desc: 'Eliminates one incorrect answer in Knowledge Checks.', icon: '😷' },
-  { id: 'pip_boy', name: 'Pip-Boy Update', cost: 800, desc: 'Increases XP yield by 15% per node.', icon: '📟' },
-  { id: 'stim_pack', name: 'Stimpak', cost: 200, desc: 'Restores 15 integrity points.', icon: '💉' }
-];
-
-export const PUZZLES: Puzzle[] = [
-  { id: 'p1', type: 'anagram', prompt: "UNSCRAMBLE THE KEY: 'A-G-N-U-A-G-E-L'", solution: "language", reward: "100 XP" },
-  { id: 'p2', type: 'pattern', prompt: "SEQUENCE: Sound -> Syllable -> Word -> ?", solution: "sentence", reward: "100 XP" },
-  { id: 'p3', type: 'match', prompt: "ANALOGY: Newspeak is to Control as Jargon is to ?", solution: "exclusion", reward: "100 XP" },
-  { id: 'p4', type: 'anagram', prompt: "UNSCRAMBLE: 'K-N-O-W-L-E-D-G-E'", solution: "knowledge", reward: "100 XP" }
-];

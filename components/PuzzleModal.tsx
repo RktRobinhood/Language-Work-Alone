@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Puzzle } from '../types';
+import { sfx } from '../utils/sfx';
 
 interface PuzzleModalProps {
   puzzle: Puzzle;
@@ -11,13 +12,23 @@ const PuzzleModal: React.FC<PuzzleModalProps> = ({ puzzle, onClose }) => {
   const [input, setInput] = useState('');
   const [error, setError] = useState(false);
 
+  useEffect(() => {
+    sfx.glitch();
+  }, []);
+
   const handleSubmit = () => {
     if (input.toLowerCase().trim() === puzzle.solution.toLowerCase()) {
       onClose(true);
     } else {
+      sfx.error();
       setError(true);
       setTimeout(() => setError(false), 500);
     }
+  };
+
+  const handleSkip = () => {
+    sfx.nav();
+    onClose(false);
   };
 
   return (
@@ -57,7 +68,7 @@ const PuzzleModal: React.FC<PuzzleModalProps> = ({ puzzle, onClose }) => {
             VALIDATE
           </button>
            <button 
-            onClick={() => onClose(false)}
+            onClick={handleSkip}
             className="px-4 bg-slate-800 text-slate-400 font-bold rounded hover:bg-slate-700"
           >
             SKIP
