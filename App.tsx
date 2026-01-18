@@ -15,7 +15,7 @@ import TerminalUpgrades from './components/TerminalUpgrades.tsx';
 import DeathScreen from './components/DeathScreen.tsx';
 import FinalSynthesis from './components/FinalSynthesis.tsx';
 
-const STORAGE_KEY = 'vault_tok_v14_narrative';
+const STORAGE_KEY = 'vault_tok_v16_narrative_stable';
 const SYNC_THRESHOLD = 6; 
 
 const App: React.FC = () => {
@@ -35,23 +35,23 @@ const App: React.FC = () => {
 
   const generateNarrativeLog = (stationId: StationId, success: boolean, roll: number) => {
     const station = STATIONS[stationId];
-    const languages = ["Spanish", "French", "German", "Japanese", "Mandarin"];
+    const languages = ["Spanish", "French", "German", "Japanese", "Mandarin", "Arabic", "Portuguese"];
     const lang = languages[Math.floor(Math.random() * languages.length)];
     
     if (success) {
       const successMsgs = [
-        `The semantic bridge at [${station.title}] held firm. Data synchronized. A voice in ${lang} whispers: "Completado".`,
-        `Roll: ${roll}. Victory. You avoided the 'lost in translation' pitfall. The Animus logic purrs like a well-oiled machine.`,
-        `Synaptic verification PASSED. [${station.title}] knowledge is now an integral part of your framework. "C'est magnifique!"`,
-        `You've mastered the linguistic nuance of [${station.title}]. The meaning is clear, even if the words are foreign.`
+        `[BRIDGE_OK] : Node [${station.title}] semantic map verified. Source node confirms: "Completado" (${lang}).`,
+        `[RECON_SUCCESS] : Roll ${roll} bypassed cognitive barriers. The ${lang} echoes of the past are no longer noise, but signal.`,
+        `[SYNC_DONE] : [${station.title}] data successfully integrated. Investigator Note: "C'est magnifique!"`,
+        `[DATA_EXTRACT] : You've extracted the hidden TOK logic from [${station.title}]. The network expands.`
       ];
       addLog('STORY', successMsgs[Math.floor(Math.random() * successMsgs.length)]);
     } else {
       const failMsgs = [
-        `CRITICAL ERROR in [${station.title}]. Semantic bleed detected. You hear a ${lang} echo: "Das ist nicht gut." -20 Integrity.`,
-        `Roll: ${roll}. The bridge collapsed. A logic paradox formed where the translation should have been.`,
-        `DESYNC: Your interpretation of [${station.title}] was culturally skewed. The Animus rejects this bias.`,
-        `FAILED SYNC. A "faux pas" of cognitive proportions. Your neural pathways are scarred by the dissonance.`
+        `[BLEED_ERROR] : [${station.title}] translation failed. Neural echo in ${lang}: "Das ist nicht gut." -20 Integrity.`,
+        `[SYNC_FAIL] : Roll ${roll} too low. Meaning slipped through your fingers like a ghost in the machine.`,
+        `[PARADOX_DET] : Cultural bias triggered a logic loop at [${station.title}]. Connection dropped.`,
+        `[FAILSAFE] : Your attempt to bridge [${station.title}] resulted in a "faux pas" of neural proportions.`
       ];
       addLog('ANOMALY', failMsgs[Math.floor(Math.random() * failMsgs.length)]);
     }
@@ -66,9 +66,11 @@ const App: React.FC = () => {
     const prereqs: Record<string, StationId> = {};
     const startingNodes = [shuffled[0], shuffled[1], shuffled[2]];
     
+    const pathPool = [...startingNodes];
     for (let i = 3; i < shuffled.length; i++) {
-      const randomPre = shuffled[Math.floor(rng.next() * i)];
+      const randomPre = pathPool[Math.floor(rng.next() * pathPool.length)];
       prereqs[shuffled[i]] = randomPre;
+      pathPool.push(shuffled[i]);
     }
 
     const initialState: GameState = {
@@ -87,7 +89,7 @@ const App: React.FC = () => {
       integrity: 100,
       fuel: 100,
       rations: 20,
-      researchLog: [{ t: Date.now(), type: 'STORY', msg: 'Animus sequence initiated. "El mapa no es el territorio." 3 entry nodes decrypted.' }],
+      researchLog: [{ t: Date.now(), type: 'STORY', msg: 'Animus sequence initiated. Investigator initialized. "El mapa no es el territorio." 3 entry nodes discovered.' }],
       unlockedUpgrades: []
     };
     
@@ -112,22 +114,20 @@ const App: React.FC = () => {
     }
   }, [createNewSession]);
 
-  // Occasional linguistic jokes or glitches
   useEffect(() => {
     if (!state || state.stage === GameStage.COMPLETE) return;
     const interval = setInterval(() => {
-      if (Math.random() > 0.85) {
+      if (Math.random() > 0.8) {
         const joke = LINGUISTIC_JOKES[Math.floor(Math.random() * LINGUISTIC_JOKES.length)];
-        addLog('STORY', `[NARRATIVE_BUFFER]: ${joke}`);
+        addLog('STORY', `[VOX_OVERRIDE]: ${joke}`);
         
-        // Randomly trigger a puzzle
         if (Math.random() > 0.6 && !showPuzzle) {
           setCurrentPuzzle(PUZZLES[Math.floor(Math.random() * PUZZLES.length)]);
           setShowPuzzle(true);
-          addLog('SYSTEM', 'Logic Gate Override Required. Detecting linguistic anomaly in the nearby sector.');
+          addLog('SYSTEM', 'Logic Malfunction detected. Neural recalibration required.');
         }
       }
-    }, 45000);
+    }, 40000);
     return () => clearInterval(interval);
   }, [state, showPuzzle, addLog]);
 
@@ -136,7 +136,7 @@ const App: React.FC = () => {
     if (state.integrity <= 0 && !showDeathScreen) {
       setShowDeathScreen(true);
       sfx.glitch();
-      addLog('STORY', 'NEURAL COLLAPSE. Desynchronization complete.');
+      addLog('ANOMALY', 'NEURAL_COLLAPSE: Critical desynchronization. Purging volatile memory.');
     }
   }, [state?.integrity, showDeathScreen, addLog]);
 
@@ -145,8 +145,10 @@ const App: React.FC = () => {
     const isDecrypted = state.decryptedNodes.includes(id);
     if (!isDecrypted) {
       sfx.error();
+      sfx.glitch();
       const pre = state.nodePrerequisites[id];
-      addLog('ANOMALY', `BLOCK ENCRYPTED. Requires key from [${STATIONS[pre]?.title || 'Unknown Source'}].`);
+      const mix = `[ACCESS_DENIED] : Handshake Error. NECESITAS la llave de [${STATIONS[pre]?.title.toUpperCase() || 'ROOT'}]. 请先同步. Vous devez stabiliser le pont d'abord. Access forbidden!`;
+      addLog('ANOMALY', mix);
       return;
     }
 
@@ -156,11 +158,11 @@ const App: React.FC = () => {
 
     if (state.fuel < fuelCost || state.rations < rationCost) {
       sfx.error();
-      addLog('RESEARCH', 'Insufficient neural fuel for projection.');
+      addLog('RESEARCH', '[SYS_WARN] : Insufficient neural energy. Feed the Animus or rest.');
       return;
     }
 
-    addLog('STORY', `Synchronizing with: ${station.title}. Maintaining link...`);
+    addLog('STORY', `[PROJECTING] : Linking to ${station.title}. Maintaining focus...`);
     sfx.scan();
     setState(prev => prev ? ({ 
       ...prev, 
@@ -215,10 +217,15 @@ const App: React.FC = () => {
   };
 
   if (!state) return (
-    <div className="flex-1 flex flex-col items-center justify-center bg-black text-[#ffb000] p-10 text-center">
-      <div className="w-12 h-12 border-4 border-t-[#ffb000] border-[#ffb000]/20 rounded-full animate-spin mb-6"></div>
-      <h2 className="text-xl font-bold uppercase tracking-widest mb-2 crt-text">Establishing Link</h2>
-      <p className="text-[10px] font-mono opacity-40 uppercase tracking-widest">Hydrating Neural Memory Corridors...</p>
+    <div className="h-full w-full flex flex-col items-center justify-center bg-[#050505] text-[#ffb000] p-10 text-center">
+      <div className="w-12 h-12 border-4 border-t-[#ffb000] border-[#ffb000]/10 rounded-full animate-spin mb-6 shadow-[0_0_20px_#ffb00033]"></div>
+      <h2 className="text-xl font-bold uppercase tracking-[0.3em] mb-2 crt-text animate-pulse">Establishing Neural Link</h2>
+      <p className="text-[9px] font-mono opacity-40 uppercase tracking-[0.5em]">Hydrating Memory Corridors...</p>
+      <div className="mt-8 text-[7px] opacity-20 font-mono uppercase">
+        Checking clearance level... OK <br/>
+        Validating encryption... OK <br/>
+        Syncing with Laboratory Feed...
+      </div>
     </div>
   );
 

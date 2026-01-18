@@ -9,13 +9,17 @@ export const UPGRADES = [
 ];
 
 export const LINGUISTIC_JOKES = [
-  "A French word walks into a bar. The bartender says, 'We don't serve your type here.' The word says, 'Je ne suis pas une type, je suis un concept.'",
-  "Why do German speakers always know where they are? Because they are always 'in der Ordnung'.",
-  "How many translators does it take to change a lightbulb? It depends on the context.",
-  "An English 'it' and a Potawatomi 'who' walk into a forest. The 'it' sees a resource; the 'who' sees a relative.",
-  "The Animus detected a pun in the Spanish sector: ¿Por qué los pájaros no usan Facebook? Porque ya tienen Twitter (Trinar).",
+  "Researcher Note #102: A French word walks into a bar. The bartender says, 'We don't serve your type here.' The word says, 'Je ne suis pas une type, je suis un concept.'",
+  "Analysis: Why do German speakers always know where they are? Because they are always 'in der Ordnung'.",
+  "Fragment: How many translators does it take to change a lightbulb? It depends on the context.",
+  "Comparison: An English 'it' and a Potawatomi 'who' walk into a forest. The 'it' sees a resource; the 'who' sees a relative.",
+  "Glitch Log: Detected a pun in the Spanish sector: ¿Por qué los pájaros no usan Facebook? Porque ya tienen Twitter (Trinar).",
   "Linguistic Joke #402: 'I have a fear of German compound words.' 'That's called Donaudampfschifffahrtselektrizitätenhauptbetriebswerkbauunterbeamtengesellschaft-phobia.'",
-  "A sign in a Swiss hotel: 'Please leave your values at the front desk.' TOK Note: Values or valuables? The ethics of translation matters."
+  "Note: A sign in a Swiss hotel: 'Please leave your values at the front desk.' TOK Note: Values or valuables? The ethics of translation matters.",
+  "Japanese Pun: Why did the frog go to the library? To find his 'Kaeru' (Home/Return).",
+  "The Animus is laughing in Binary. It says: 'There are 10 types of people in the world. Those who understand logic, and those who don't.'",
+  "Observation: 'Language is a virus from outer space.' (Burroughs). The Animus seems to agree.",
+  "Semantic Leak: In Portuguese, 'Saudade' is a presence of absence. In English, it's just 'lonely'. The sync loss is measurable."
 ];
 
 export const PUZZLES: Puzzle[] = [
@@ -23,7 +27,8 @@ export const PUZZLES: Puzzle[] = [
   { id: 'p2', type: 'fallacy', prompt: "A logic gate is blocked. REQ: A word that means 'the study of signs and symbols and their use or interpretation'.", solution: "semiotics", reward: { rations: 5, xp: 150 } },
   { id: 'p3', type: 'logic', prompt: "French: Chat. Spanish: Gato. Japanese: Neko. The thing itself is a ___. (Hint: Not the word, the concept).", solution: "signified", reward: { xp: 200, integrity: 15 } },
   { id: 'p4', type: 'tok-concept', prompt: "TERM: The phenomenon where a concept cannot be accurately expressed in another language.", solution: "untranslatability", reward: { fuel: 10, rations: 2 } },
-  { id: 'p5', type: 'pattern', prompt: "Language : Culture :: Grammar : ___.", solution: "logic", reward: { xp: 300, integrity: 10 } }
+  { id: 'p5', type: 'pattern', prompt: "Language : Culture :: Grammar : ___.", solution: "logic", reward: { xp: 300, integrity: 10 } },
+  { id: 'p6', type: 'tok-concept', prompt: "Spanish: Esperar means 'To wait' and 'To hope'. This is an example of linguistic ___.", solution: "polysemy", reward: { xp: 150, fuel: 5 } }
 ];
 
 export const STATIONS: Record<StationId, Station> = {
