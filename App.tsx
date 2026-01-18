@@ -1,21 +1,19 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
-import { GameState, StationId, LogEntry, GameStage } from './types';
-import { STATIONS, PUZZLES, UPGRADES } from './constants';
-import { SeededRNG } from './utils/rng';
-import { sfx } from './utils/sfx';
+import { GameState, StationId, LogEntry, GameStage } from './types.ts';
+import { STATIONS, PUZZLES, UPGRADES } from './constants.tsx';
+import { SeededRNG } from './utils/rng.ts';
+import { sfx } from './utils/sfx.ts';
 
 // Components
-import Layout from './components/Layout';
-import StationView from './components/StationView';
-import PuzzleModal from './components/PuzzleModal';
-import MissionHub from './components/MissionHub';
-import SubmissionPack from './components/SubmissionPack';
-import TerminalUpgrades from './components/TerminalUpgrades';
+import Layout from './components/Layout.tsx';
+import StationView from './components/StationView.tsx';
+import PuzzleModal from './components/PuzzleModal.tsx';
+import MissionHub from './components/MissionHub.tsx';
+import SubmissionPack from './components/SubmissionPack.tsx';
+import TerminalUpgrades from './components/TerminalUpgrades.tsx';
 
 const STORAGE_KEY = 'vault_tok_final_v5_survival';
 const MIN_WORK_TIME = 50 * 60; // 50 Minutes
-const REVEAL_DATE = new Date("2026-01-19T10:30:00+01:00").getTime(); 
 
 const App: React.FC = () => {
   const [state, setState] = useState<GameState | null>(null);
@@ -132,18 +130,12 @@ const App: React.FC = () => {
       const xpGain = 500 * boost;
       
       const station = STATIONS[stationId];
-      const newTools = [...prev.earnedTools];
-      if (station.rewardTool && !newTools.includes(station.rewardTool)) {
-        newTools.push(station.rewardTool);
-      }
-
       const newlyDiscovered = station.neighbors.filter(n => !prev.discoveredNodes.includes(n));
       const updatedNodes = [...prev.discoveredNodes, ...newlyDiscovered];
 
       const newState = {
         ...prev,
         xp: prev.xp + Math.floor(xpGain),
-        earnedTools: newTools,
         discoveredNodes: updatedNodes,
         stationProgress: {
           ...prev.stationProgress,
@@ -151,7 +143,7 @@ const App: React.FC = () => {
         },
         currentStationId: null,
         clearanceLevel: Math.floor((prev.xp + xpGain) / 1000) + 1,
-        rations: prev.rations + 2, // Find survival stash
+        rations: prev.rations + 2,
         fuel: Math.min(100, prev.fuel + 5)
       };
       

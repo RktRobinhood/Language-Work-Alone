@@ -1,5 +1,4 @@
-
-import { Station, StationId, Puzzle } from './types';
+import { Station, StationId, Puzzle } from './types.ts';
 
 export const UPGRADES = [
   { id: 'rad_mask', name: 'Radiation Mask', desc: 'Ignore first wrong answer in validations.', cost: 400, icon: '🎭' },
