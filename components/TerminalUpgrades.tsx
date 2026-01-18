@@ -1,8 +1,7 @@
-
 import React from 'react';
-import { GameState } from '../types';
-import { UPGRADES } from '../constants';
-import { sfx } from '../utils/sfx';
+import { GameState } from '../types.ts';
+import { UPGRADES } from '../constants.tsx';
+import { sfx } from '../utils/sfx.ts';
 
 interface TerminalUpgradesProps {
   state: GameState;
@@ -16,48 +15,47 @@ const TerminalUpgrades: React.FC<TerminalUpgradesProps> = ({ state, onBuy, onBac
     onBuy(id, cost);
   };
 
-  const handleBack = () => {
-    sfx.nav();
-    onBack();
-  };
-
   return (
-    <div className="flex flex-col gap-8 animate-in slide-in-from-right-4">
-      <div className="border-b-2 border-[#ffb000] pb-4">
-        <h2 className="text-3xl font-bold crt-text text-[#ffb000] uppercase">PIP-BOY_UPGRADE_SERVICES</h2>
-        <p className="text-[10px] opacity-50 uppercase tracking-widest">Available_Credits: {state.xp} XP</p>
+    <div className="h-full flex flex-col bg-black overflow-hidden">
+      <div className="p-4 border-b border-[#ffb000]/20 flex justify-between items-center bg-[#ffb000]/5 shrink-0">
+        <h2 className="text-[10px] font-bold uppercase tracking-widest">System_Calibration</h2>
+        <span className="text-[10px] font-mono text-cyan-500">{state.xp} CR</span>
       </div>
 
-      <div className="grid gap-6">
+      <div className="flex-1 overflow-y-auto terminal-scrollbar p-4 space-y-3">
         {UPGRADES.map(u => {
           const isUnlocked = state.unlockedUpgrades.includes(u.id);
           const canAfford = state.xp >= u.cost;
           return (
-            <div key={u.id} className={`vault-panel p-6 border-2 transition-all ${isUnlocked ? 'border-emerald-500 bg-emerald-900/10' : canAfford ? 'border-[#ffb000]' : 'border-[#ffb000]/20 opacity-40'}`}>
-              <div className="flex items-center gap-6">
-                <div className="text-4xl">{u.icon}</div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold uppercase">{u.name}</h3>
-                  <p className="text-xs opacity-60 font-mono">{u.desc}</p>
+            <div key={u.id} className={`p-4 border transition-all ${isUnlocked ? 'border-green-500/40 bg-green-500/5' : canAfford ? 'border-[#ffb000]/40' : 'border-[#ffb000]/10 opacity-30'}`}>
+              <div className="flex items-center gap-4">
+                <div className="text-xl shrink-0 opacity-80">{u.icon}</div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[10px] font-bold uppercase truncate">{u.name}</h3>
+                  <p className="text-[8px] opacity-60 italic mt-0.5">{u.desc}</p>
                 </div>
                 {!isUnlocked ? (
                   <button 
                     disabled={!canAfford}
                     onClick={() => handleBuy(u.id, u.cost)}
-                    className="vault-btn px-8"
+                    className="px-3 py-1.5 bg-[#ffb000] text-black font-bold uppercase text-[9px] whitespace-nowrap"
                   >
-                    {u.cost} XP
+                    {u.cost}
                   </button>
                 ) : (
-                  <span className="text-emerald-500 font-bold uppercase tracking-widest text-xs">INSTALLED</span>
+                  <span className="text-green-500 text-[8px] font-bold uppercase tracking-widest">Active</span>
                 )}
               </div>
             </div>
           );
         })}
       </div>
-      
-      <button onClick={handleBack} className="vault-btn py-4 opacity-50 hover:opacity-100">RETURN_TO_STATUS_HUB</button>
+
+      <div className="p-4 shrink-0">
+        <button onClick={onBack} className="w-full py-3 border border-[#ffb000]/40 text-[9px] font-bold uppercase tracking-widest opacity-60 hover:opacity-100">
+          Close Terminal
+        </button>
+      </div>
     </div>
   );
 };

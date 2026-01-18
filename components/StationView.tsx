@@ -1,55 +1,24 @@
-
-import React, { useState, useEffect } from 'react';
-import { Station, GameState } from '../types';
-import { sfx } from '../utils/sfx';
+import React, { useState } from 'react';
+import { Station, GameState, LogEntry } from '../types.ts';
+import { sfx } from '../utils/sfx.ts';
 
 interface StationViewProps {
   station: Station;
-  onComplete: (id: any, answers: number[], draft: string, score: number) => void;
+  onComplete: (id: any, answers: number[], draft: string) => void;
   onCancel: () => void;
   state: GameState;
-  onLog: (type: string, payload: any) => void;
   onUpdateState: (updater: (prev: GameState) => GameState) => void;
+  addLog: (type: LogEntry['type'], msg: string) => void;
 }
 
-interface ShuffledOption {
-  text: string;
-  originalIndex: number;
-}
-
-const StationView: React.FC<StationViewProps> = ({ station, onComplete, onCancel, state, onLog, onUpdateState }) => {
-  const [step, setStep] = useState<'material' | 'checks' | 'synthesis'>('material');
+const StationView: React.FC<StationViewProps> = ({ station, onComplete, onCancel, state, onUpdateState, addLog }) => {
+  const [step, setStep] = useState<'reading' | 'validation' | 'synthesis'>('reading');
   const [currentMCQ, setCurrentMCQ] = useState(0);
-  const [shuffledOptions, setShuffledOptions] = useState<ShuffledOption[]>([]);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
-  const [wrongAnswers, setWrongAnswers] = useState<Record<number, boolean>>({});
   const [draft, setDraft] = useState('');
 
-  // Randomize options when the current question or step changes
-  useEffect(() => {
-    if (step === 'checks' && station.mcqs[currentMCQ]) {
-      const options = station.mcqs[currentMCQ].options.map((text, index) => ({
-        text,
-        originalIndex: index,
-      }));
-      
-      // Fisher-Yates shuffle
-      for (let i = options.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [options[i], options[j]] = [options[j], options[i]];
-      }
-      
-      setShuffledOptions(options);
-    }
-  }, [currentMCQ, step, station]);
-
-  const handleMCQSubmit = (originalIndex: number) => {
-    const isCorrect = originalIndex === station.mcqs[currentMCQ].answerIndex;
-    
-    if (isCorrect) {
+  const handleMCQSubmit = (idx: number) => {
+    if (idx === station.mcqs[currentMCQ].answerIndex) {
       sfx.confirm();
-      setAnswers(prev => ({ ...prev, [currentMCQ]: originalIndex }));
-      setWrongAnswers(prev => ({ ...prev, [currentMCQ]: false }));
       if (currentMCQ < station.mcqs.length - 1) {
         setCurrentMCQ(currentMCQ + 1);
       } else {
@@ -57,115 +26,88 @@ const StationView: React.FC<StationViewProps> = ({ station, onComplete, onCancel
       }
     } else {
       sfx.error();
-      // Integrity damage on failure
       onUpdateState(prev => ({ ...prev, integrity: Math.max(0, prev.integrity - 5) }));
-      setWrongAnswers(prev => ({ ...prev, [currentMCQ]: true }));
-      onLog('Validation Failure', { node: station.id });
+      addLog('ANOMALY', `Logic dissonance detected at ${station.title}. Stability compromised.`);
     }
   };
 
   return (
-    <div className="flex flex-col gap-6 animate-in slide-in-from-right-8 pb-20">
-      <div className="flex justify-between items-center border-b-2 border-[#ffb000] pb-4">
-        <div className="flex flex-col">
-          <h2 className="text-xl font-bold text-[#ffb000] uppercase tracking-tighter">{station.title}</h2>
-          <span className="text-[9px] font-mono opacity-50 uppercase">Protocol: Language Lab v1.0</span>
-        </div>
-        <button onClick={onCancel} className="vault-btn text-[10px]">Abort</button>
+    <div className="h-full flex flex-col bg-black">
+      {/* Mini-Header */}
+      <div className="h-10 px-4 border-b border-[#ffb000]/20 flex justify-between items-center shrink-0">
+        <span className="text-[8px] font-bold uppercase tracking-widest truncate">{station.title}</span>
+        <button onClick={onCancel} className="text-[7px] border border-[#ffb000]/40 px-2 py-0.5 uppercase opacity-60">Abort</button>
       </div>
 
-      {step === 'material' && (
-        <div className="flex flex-col gap-6">
-          <div className="vault-panel p-4 bg-black/50">
-             <h3 className="text-[10px] font-bold text-[#ffb000] uppercase mb-1">Research Source</h3>
-             <p className="text-[10px] opacity-70 italic">{station.readingSource || 'Unknown Archive'}</p>
-          </div>
-
-          {station.youtubeId && (
-            <div className="video-container">
-              <iframe 
-                src={`https://www.youtube.com/embed/${station.youtubeId}?modestbranding=1&rel=0`} 
-                title="Feed" 
-                frameBorder="0" 
-                allowFullScreen
-              ></iframe>
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto terminal-scrollbar p-4 pb-24">
+        {step === 'reading' && (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <span className="text-[7px] opacity-40 uppercase tracking-widest">Knowledge_Artifact</span>
+              <p className="text-sm leading-relaxed border-l-2 border-[#ffb000]/40 pl-4 py-2 bg-[#ffb000]/5 italic">
+                {station.reading}
+              </p>
+              <div className="text-right text-[7px] opacity-30 uppercase">— Source: {station.readingSource}</div>
             </div>
-          )}
-          
-          <div className="vault-panel p-6 bg-black/60">
-             <p className="text-sm text-[#ffb000]/95 leading-relaxed font-mono whitespace-pre-wrap">
-               {station.reading}
-             </p>
-          </div>
-
-          <button onClick={() => { sfx.scan(); setStep('checks'); }} className="vault-btn py-4 text-sm bg-[#ffb000] text-black">
-             Begin Validation Protocol
-          </button>
-        </div>
-      )}
-
-      {step === 'checks' && (
-        <div className="flex flex-col gap-6">
-          <div className="text-center">
-             <p className="text-[10px] font-bold text-[#ffb000] uppercase tracking-widest">Question {currentMCQ + 1} / {station.mcqs.length}</p>
-             <div className="flex justify-center gap-1 mt-2">
-               {station.mcqs.map((_, i) => (
-                 <div key={i} className={`h-1 w-4 rounded-full ${i === currentMCQ ? 'bg-[#ffb000]' : i < currentMCQ ? 'bg-green-500' : 'bg-[#ffb000]/20'}`}></div>
-               ))}
-             </div>
-          </div>
-
-          <div className="vault-panel p-6">
-            <p className="text-lg font-bold text-white mb-6 border-b border-[#ffb000]/20 pb-4">{station.mcqs[currentMCQ].question}</p>
             
-            <div className="flex flex-col gap-3">
-              {shuffledOptions.map((opt, sIdx) => (
-                <button
-                  key={sIdx}
-                  onClick={() => handleMCQSubmit(opt.originalIndex)}
-                  className="text-left p-4 border transition-all uppercase text-[11px] font-bold border-[#ffb000]/30 text-[#ffb000]/80 hover:bg-[#ffb000] hover:text-black active:scale-[0.98]"
-                >
-                  {opt.text}
+            {station.youtubeId && (
+              <div className="video-container rounded border border-[#ffb000]/20">
+                <iframe src={`https://www.youtube.com/embed/${station.youtubeId}?modestbranding=1&autohide=1&showinfo=0&controls=1`} frameBorder="0" allowFullScreen></iframe>
+              </div>
+            )}
+          </div>
+        )}
+
+        {step === 'validation' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="text-center">
+              <span className="text-[7px] opacity-40 uppercase tracking-[0.4em]">Knowledge_Verification_{currentMCQ + 1}/{station.mcqs.length}</span>
+              <h3 className="text-sm font-bold mt-2 leading-snug">{station.mcqs[currentMCQ].question}</h3>
+            </div>
+            <div className="grid gap-2">
+              {station.mcqs[currentMCQ].options.map((opt, i) => (
+                <button key={i} onClick={() => handleMCQSubmit(i)} className="text-left p-3 border border-[#ffb000]/20 text-[10px] uppercase hover:bg-[#ffb000]/10 active:bg-[#ffb000] active:text-black transition-all">
+                  {opt}
                 </button>
               ))}
             </div>
-
-            {wrongAnswers[currentMCQ] && (
-               <div className="mt-6 p-4 bg-red-900/10 border border-red-500/50 animate-pulse">
-                  <p className="text-[10px] font-bold text-red-500 uppercase">Integrity Alert</p>
-                  <p className="text-[11px] text-red-200 leading-relaxed font-mono">Conceptual mismatch detected. Mental integrity falling. Re-read the source text carefully.</p>
-               </div>
-            )}
           </div>
-        </div>
-      )}
+        )}
 
-      {step === 'synthesis' && (
-        <div className="flex flex-col gap-6">
-          <div className="vault-panel p-6 bg-[#ffb000]/5 border-[#ffb000]/40">
-            <p className="text-[10px] font-bold text-[#ffb000] uppercase mb-2">Synthesis Task</p>
-            <p className="text-lg font-bold text-white italic leading-snug">"{station.deliverablePrompt}"</p>
-          </div>
-          <div className="relative">
+        {step === 'synthesis' && (
+          <div className="h-full flex flex-col gap-4 animate-in fade-in duration-300">
+            <div className="p-3 bg-[#ffb000]/5 border border-[#ffb000]/20">
+              <span className="text-[7px] opacity-40 uppercase tracking-widest block mb-1">Synthesize_Findings</span>
+              <p className="text-[11px] font-bold italic leading-snug">{station.deliverablePrompt}</p>
+            </div>
             <textarea 
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Record research findings in terminal buffer..."
-              className="w-full h-64 bg-black/90 border-2 border-[#ffb000]/20 rounded p-6 text-sm font-mono focus:border-[#ffb000] outline-none text-[#ffb000] terminal-scrollbar"
+              placeholder="Record your observations for the archive..."
+              className="flex-1 min-h-[160px] bg-black/80 border border-[#ffb000]/20 p-4 text-[11px] font-mono outline-none focus:border-[#ffb000] text-[#ffb000] resize-none"
             />
-            <div className="absolute bottom-4 right-4 text-[9px] font-mono opacity-40 uppercase">
-              Min Length: 20 chars | Current: {draft.length}
-            </div>
           </div>
-          <button 
-            onClick={() => onComplete(station.id, [], draft, 100)} 
-            disabled={draft.length < 20} 
-            className="w-full vault-btn py-4 text-lg bg-[#ffb000] text-black shadow-[0_0_15px_rgba(255,176,0,0.3)]"
-          >
-            Stabilize Knowledge Node
+        )}
+      </div>
+
+      {/* Persistent Bottom Action (Reachability) */}
+      <div className="absolute bottom-0 inset-x-0 p-4 bg-black/90 border-t border-[#ffb000]/20 z-50">
+        {step === 'reading' && (
+          <button onClick={() => { sfx.scan(); setStep('validation'); }} className="w-full py-3 bg-[#ffb000] text-black font-bold uppercase text-[10px] tracking-widest active:scale-95 transition-transform">
+            Verify Knowledge
           </button>
-        </div>
-      )}
+        )}
+        {step === 'synthesis' && (
+          <button 
+            onClick={() => onComplete(station.id, [], draft)} 
+            disabled={draft.length < 15} 
+            className="w-full py-3 bg-[#ffb000] text-black font-bold uppercase text-[10px] tracking-widest disabled:opacity-20 active:scale-95 transition-transform"
+          >
+            Archive Synthesis
+          </button>
+        )}
+      </div>
     </div>
   );
 };

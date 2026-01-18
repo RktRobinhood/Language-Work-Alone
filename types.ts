@@ -37,7 +37,6 @@ export interface Station {
   x: number;
   y: number;
   rewardTool?: string;
-  benefitFromTool?: string;
   neighbors: StationId[];
   lessonPlan: string;
   fuelCost?: number;
@@ -46,8 +45,8 @@ export interface Station {
 
 export interface LogEntry {
   t: number;
-  type: string;
-  payload: any;
+  type: 'SYSTEM' | 'RESEARCH' | 'ANOMALY' | 'ACHIEVEMENT';
+  msg: string;
 }
 
 export interface GameState {
@@ -69,7 +68,7 @@ export interface GameState {
   integrity: number; 
   fuel: number;      
   rations: number;   
-  log: LogEntry[];
+  researchLog: LogEntry[];
   unlockedUpgrades: string[];
 }
 

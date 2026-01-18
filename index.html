@@ -1,107 +1,79 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Vault TOK // Language Laboratory</title>
-  
-  <!-- Tailwind CSS Support -->
+  <title>Vault TOK // Laboratory Terminal</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  
   <style>
     :root {
       --vault-amber: #ffb000;
-      --vault-bg: #0a0a0a;
+      --vault-bg: #050505;
     }
     body {
       background-color: var(--vault-bg);
       color: var(--vault-amber);
       font-family: 'Share Tech Mono', monospace;
       margin: 0;
-      overflow-x: hidden;
-      min-height: 100vh;
-      touch-action: manipulation;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
     .crt-text {
-      text-shadow: 0 0 10px rgba(255, 176, 0, 0.7);
+      text-shadow: 0 0 8px rgba(255, 176, 0, 0.6);
     }
     .vault-panel {
-      background: rgba(12, 12, 12, 0.98);
-      border: 2px solid var(--vault-amber);
-      box-shadow: inset 0 0 30px rgba(255, 176, 0, 0.05);
+      background: rgba(10, 10, 10, 0.9);
+      border: 1px solid rgba(255, 176, 0, 0.3);
     }
-    .vault-btn {
-      border: 2px solid var(--vault-amber);
-      padding: 0.5rem 1rem;
-      text-transform: uppercase;
-      font-weight: bold;
-      transition: all 0.2s;
-      background: transparent;
-      color: var(--vault-amber);
-      cursor: pointer;
-      display: inline-block;
-      text-align: center;
-    }
-    .vault-btn:hover {
-      background: var(--vault-amber);
-      color: #0a0a0a;
-    }
-    .vault-btn:active {
-      transform: translateY(1px);
-    }
-    .vault-btn:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-    }
-    /* CRT Scanline and Vignette Effects */
     .crt-overlay {
       position: fixed;
       top: 0; left: 0; bottom: 0; right: 0;
       background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
                   linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
-      z-index: 1000;
-      background-size: 100% 3px, 3px 100%;
+      z-index: 9999;
+      background-size: 100% 2px, 2px 100%;
       pointer-events: none;
     }
     .vignette {
       position: fixed;
       top: 0; left: 0; bottom: 0; right: 0;
-      background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.6) 150%);
-      z-index: 1001;
+      background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.8) 150%);
+      z-index: 9998;
       pointer-events: none;
     }
-    .video-container {
-      position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;
-      border: 2px solid var(--vault-amber);
-      background: #000;
-    }
-    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-    
-    .terminal-scrollbar::-webkit-scrollbar { width: 6px; }
-    .terminal-scrollbar::-webkit-scrollbar-track { background: #050505; }
-    .terminal-scrollbar::-webkit-scrollbar-thumb { background: var(--vault-amber); }
-    
-    @keyframes node-pulse {
-      0% { box-shadow: 0 0 0 0 rgba(255, 176, 0, 0.4); }
-      70% { box-shadow: 0 0 0 10px rgba(255, 176, 0, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(255, 176, 0, 0); }
-    }
-    .node-active { animation: node-pulse 2s infinite; }
-
     #loading-screen {
       position: fixed;
       inset: 0;
-      background: #0a0a0a;
+      background: #050505;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      z-index: 9999;
+      z-index: 10000;
       color: #ffb000;
+    }
+    .terminal-scrollbar::-webkit-scrollbar { width: 4px; }
+    .terminal-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .terminal-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 176, 0, 0.2); }
+    
+    /* Animation for active research nodes */
+    @keyframes pulse-ring {
+      0% { transform: scale(0.33); opacity: 1; }
+      80%, 100% { opacity: 0; }
+    }
+    .node-pulse {
+      position: relative;
+    }
+    .node-pulse::before {
+      content: '';
+      position: absolute;
+      width: 300%; height: 300%;
+      border-radius: 50%;
+      border: 1px solid var(--vault-amber);
+      animation: pulse-ring 1.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
     }
   </style>
 <script type="importmap">
@@ -116,48 +88,50 @@
 </head>
 <body>
   <div id="loading-screen">
-    <h1 class="text-2xl font-bold crt-text mb-4">INITIALIZING VAULT TERMINAL...</h1>
-    <div class="w-48 h-1 bg-[#ffb000]/20 rounded-full overflow-hidden">
-      <div id="loading-bar" class="h-full bg-[#ffb000]" style="width: 0%"></div>
+    <div class="mb-8 flex flex-col items-center">
+      <div class="w-12 h-12 border-4 border-t-[#ffb000] border-[#ffb000]/20 rounded-full animate-spin mb-4"></div>
+      <h1 class="text-lg font-bold tracking-[0.3em] crt-text">TERMINAL_BOOT_SEQ</h1>
     </div>
-    <p id="loading-status" class="mt-4 text-[10px] font-mono opacity-50 uppercase tracking-[0.2em]">Authenticating User...</p>
+    <div id="boot-log" class="text-[10px] opacity-40 uppercase space-y-1 font-mono text-center">
+      <div>Verifying encryption keys...</div>
+    </div>
   </div>
 
   <div class="vignette"></div>
   <div class="crt-overlay"></div>
-  <div id="root"></div>
+  <div id="root" class="flex-1 flex flex-col h-full overflow-hidden"></div>
 
-  <!-- esm.sh/run loader: This script intercepts type="text/babel" modules and transpiles them in-browser. -->
   <script type="module" src="https://esm.sh/run"></script>
-
-  <!-- We use text/babel with a src to ensure esm.sh/run fetches and transpiles it as a TSX file. -->
   <script type="text/babel" data-type="module" src="./index.tsx"></script>
 
   <script>
-    // Simple loading bar animation logic
-    const bar = document.getElementById('loading-bar');
-    const status = document.getElementById('loading-status');
-    const messages = ["Loading Protocols...", "Scanning Nodes...", "Establishing Neural Link...", "Bypassing Security...", "Finalizing UI..."];
-    let progress = 0;
-    
+    const messages = [
+      "Accessing Vault Archives...",
+      "Syncing TOK Frameworks...",
+      "Neural Link Established...",
+      "Decrypting Language Database...",
+      "UI Layer Ready."
+    ];
+    let i = 0;
+    const log = document.getElementById('boot-log');
     const interval = setInterval(() => {
-      progress += Math.random() * 5;
-      if (progress >= 100) {
-        progress = 99;
+      if(i < messages.length) {
+        const div = document.createElement('div');
+        div.textContent = messages[i];
+        log.appendChild(div);
+        i++;
+      } else {
         clearInterval(interval);
       }
-      bar.style.width = progress + '%';
-      if (Math.random() > 0.8) {
-        status.textContent = messages[Math.floor(Math.random() * messages.length)];
-      }
-    }, 100);
+    }, 400);
 
-    // Observer to hide the loading screen when React mounts
     const observer = new MutationObserver(() => {
       const root = document.getElementById('root');
       if (root && root.children.length > 0) {
-        document.getElementById('loading-screen').style.display = 'none';
-        clearInterval(interval);
+        setTimeout(() => {
+          document.getElementById('loading-screen').style.opacity = '0';
+          setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 500);
+        }, 800);
         observer.disconnect();
       }
     });
