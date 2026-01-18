@@ -7,9 +7,10 @@ interface LayoutProps {
   children: React.ReactNode;
   activeTab: string;
   onNav: (tab: any) => void;
+  isDossierUnlocked: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({ state, children, activeTab, onNav }) => {
+const Layout: React.FC<LayoutProps> = ({ state, children, activeTab, onNav, isDossierUnlocked }) => {
   return (
     <div className="min-h-screen flex flex-col selection:bg-[#ffb000] selection:text-black">
       <header className="sticky top-0 z-[60] bg-[#1a1a1a]/95 backdrop-blur border-b-4 border-[#ffb000] px-6 py-2">
@@ -17,24 +18,30 @@ const Layout: React.FC<LayoutProps> = ({ state, children, activeTab, onNav }) =>
           <div className="flex items-center gap-6">
             <div className="flex flex-col cursor-pointer" onClick={() => onNav('dashboard')}>
               <h1 className="text-2xl font-bold crt-text tracking-tighter text-[#ffb000]">Vault TOK</h1>
-              <span className="text-[8px] font-mono uppercase opacity-50 -mt-1">Language Exploration Protocol</span>
+              <span className="text-[8px] font-mono uppercase opacity-50 -mt-1">Language Lab Protocol</span>
             </div>
             
             <nav className="hidden md:flex gap-4">
-              {['dashboard', 'upgrades', 'submission'].map(t => {
-                if (t === 'submission' && activeTab !== 'submission' && !localStorage.getItem('dossier_unlocked')) {
-                    // Hidden until condition met in App.tsx
-                }
-                return (
-                  <button 
-                    key={t} 
-                    onClick={() => onNav(t)}
-                    className={`text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 border border-transparent hover:border-[#ffb000] transition-all ${activeTab === t ? 'bg-[#ffb000] text-black' : 'text-[#ffb000]'}`}
-                  >
-                    {t === 'dashboard' ? 'Status' : t === 'submission' ? 'Dossier' : t}
-                  </button>
-                )
-              })}
+              <button 
+                onClick={() => onNav('dashboard')}
+                className={`text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 border border-transparent hover:border-[#ffb000] transition-all ${activeTab === 'dashboard' ? 'bg-[#ffb000] text-black' : 'text-[#ffb000]'}`}
+              >
+                Status
+              </button>
+              <button 
+                onClick={() => onNav('upgrades')}
+                className={`text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 border border-transparent hover:border-[#ffb000] transition-all ${activeTab === 'upgrades' ? 'bg-[#ffb000] text-black' : 'text-[#ffb000]'}`}
+              >
+                Upgrades
+              </button>
+              {isDossierUnlocked && (
+                <button 
+                  onClick={() => onNav('submission')}
+                  className={`text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 border border-transparent border-white/20 hover:border-[#ffb000] transition-all ${activeTab === 'submission' ? 'bg-[#ffb000] text-black' : 'text-[#ffb000]'}`}
+                >
+                  Dossier
+                </button>
+              )}
             </nav>
           </div>
           

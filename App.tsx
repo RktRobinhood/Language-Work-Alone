@@ -13,9 +13,9 @@ import MissionHub from './components/MissionHub';
 import SubmissionPack from './components/SubmissionPack';
 import TerminalUpgrades from './components/TerminalUpgrades';
 
-const STORAGE_KEY = 'vault_tok_v2_final';
-const MIN_WORK_TIME = 50 * 60; // 50 Minutes in seconds
-const REVEAL_DATE = 1737279000000; // Jan 19, 2026, 10:30 AM CET
+const STORAGE_KEY = 'vault_tok_final_v3';
+const MIN_WORK_TIME = 50 * 60; // 50 Minutes
+const REVEAL_DATE = new Date("2026-01-19T10:30:00+01:00").getTime(); // Jan 19, 2026, 10:30 AM CET
 
 const App: React.FC = () => {
   const [state, setState] = useState<GameState | null>(null);
@@ -24,19 +24,21 @@ const App: React.FC = () => {
   const [currentPuzzle, setCurrentPuzzle] = useState(PUZZLES[0]);
   const [isDossierUnlocked, setIsDossierUnlocked] = useState(false);
 
+  // Verbose mounting for debugging
   useEffect(() => {
-    console.log("Vault App Mounting...");
+    console.log("[Vault Terminal] Handshaking with browser...");
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        console.log("Loading saved vault state", parsed);
+        console.log("[Vault Terminal] Previous session data recovered.", parsed);
         setState(parsed);
       } catch (e) {
-        console.error("Corruption in vault data, resetting...", e);
+        console.error("[Vault Terminal] Data corruption detected. Wiping local cache.", e);
         createNewSession();
       }
     } else {
+      console.log("[Vault Terminal] No existing session found. Generating new knave profile.");
       createNewSession();
     }
   }, []);
@@ -57,7 +59,7 @@ const App: React.FC = () => {
       xp: 0,
       clearanceLevel: 1,
       dataIntegrity: 100,
-      log: [{ t: Date.now(), type: 'BOOT_SEQUENCE', payload: { vault: '76-TOK' } }],
+      log: [{ t: Date.now(), type: 'System Boot', payload: { version: '0.4.2' } }],
       unlockedUpgrades: []
     };
     
@@ -72,20 +74,21 @@ const App: React.FC = () => {
         if (!prev) return null;
         const updated = { ...prev, totalActiveTime: prev.totalActiveTime + 1 };
         
-        // Save every 5 seconds to reduce wear but keep progress safe
-        if (updated.totalActiveTime % 5 === 0) {
+        // Save progress regularly
+        if (updated.totalActiveTime % 10 === 0) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
         }
 
-        // Logic for unlocking the hidden Dossier
+        // Dossier Unlock Check
         const isTimeMet = updated.totalActiveTime >= MIN_WORK_TIME;
         const isDateMet = Date.now() >= REVEAL_DATE;
         if ((isTimeMet || isDateMet) && !isDossierUnlocked) {
+          console.log("[Vault Terminal] Protocol fulfilled. Research Dossier Unlocked.");
           setIsDossierUnlocked(true);
         }
 
-        // Random Vault Malfunctions (Puzzle triggers)
-        if (Math.random() < 0.001 && activeTab === 'dashboard' && !showPuzzle) {
+        // Random Lab Failures (Anagrams/Puzzles)
+        if (Math.random() < 0.0008 && activeTab === 'dashboard' && !showPuzzle) {
           setCurrentPuzzle(PUZZLES[Math.floor(Math.random() * PUZZLES.length)]);
           setShowPuzzle(true);
         }
@@ -105,12 +108,14 @@ const App: React.FC = () => {
 
   const handleStartStation = (id: StationId) => {
     sfx.scan();
+    console.log(`[Vault Terminal] Uplinking to node: ${id}`);
     setState(prev => prev ? ({ ...prev, currentStationId: id }) : null);
     setActiveTab('station');
   };
 
   const handleCompleteStation = (stationId: StationId, answers: number[], draft: string, score: number) => {
     sfx.confirm();
+    console.log(`[Vault Terminal] Node ${stationId} recovered successfully.`);
     setState(prev => {
       if (!prev) return null;
       const boost = prev.unlockedUpgrades.includes('pip_boy') ? 1.15 : 1;
@@ -134,14 +139,22 @@ const App: React.FC = () => {
         clearanceLevel: Math.floor((prev.xp + xpGain) / 1000) + 1
       };
     });
-    addLog('STABILIZED', { node: stationId });
+    addLog('Node Restored', { node: stationId });
     setActiveTab('dashboard');
   };
 
-  if (!state) return null;
+  if (!state) {
+    return (
+      <div className="min-h-screen bg-[#111] flex flex-col items-center justify-center p-8 text-center">
+        <div className="w-16 h-1 bg-[#ffb000] animate-pulse mb-4"></div>
+        <h1 className="text-xl font-mono uppercase crt-text mb-2">Connecting to Vault Terminal...</h1>
+        <p className="text-[10px] opacity-40 font-mono uppercase">If screen remains dark, check browser module support.</p>
+      </div>
+    );
+  }
 
   return (
-    <Layout state={state} onNav={setActiveTab} activeTab={activeTab}>
+    <Layout state={state} onNav={setActiveTab} activeTab={activeTab} isDossierUnlocked={isDossierUnlocked}>
       <div className="max-w-5xl mx-auto px-4 py-6">
         {activeTab === 'dashboard' && (
           <MissionHub 
@@ -187,11 +200,11 @@ const App: React.FC = () => {
             if (success) {
               sfx.confirm();
               setState(prev => prev ? ({ ...prev, xp: prev.xp + 100 }) : null);
-              addLog('PUZZLE_RESOLVED', { id: currentPuzzle.id });
+              addLog('Malfunction Solved', { id: currentPuzzle.id });
             } else {
               sfx.error();
               setState(prev => prev ? ({ ...prev, dataIntegrity: Math.max(0, prev.dataIntegrity - 5) }) : null);
-              addLog('PUZZLE_FAILED', { id: currentPuzzle.id });
+              addLog('Security Breach', { id: currentPuzzle.id });
             }
           }}
         />

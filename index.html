@@ -4,15 +4,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VAULT-TOK // LINGUISTIC STABILIZATION PROTOCOL</title>
+  <title>Vault TOK // Linguistic Protocol</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     :root {
       --vault-amber: #ffb000;
-      --vault-green: #33ff33;
-      --vault-bg: #1a1a1a;
-      --vault-surface: #262626;
+      --vault-bg: #111111;
     }
     body {
       background-color: var(--vault-bg);
@@ -20,60 +18,65 @@
       font-family: 'Share Tech Mono', monospace;
       margin: 0;
       overflow-x: hidden;
+      min-height: 100vh;
     }
     .crt-text {
-      text-shadow: 0 0 5px var(--vault-amber);
+      text-shadow: 0 0 8px rgba(255, 176, 0, 0.6);
     }
     .vault-panel {
-      background: rgba(30, 30, 30, 0.9);
+      background: rgba(20, 20, 20, 0.95);
       border: 2px solid var(--vault-amber);
-      box-shadow: inset 0 0 15px rgba(255, 176, 0, 0.2), 0 0 10px rgba(0, 0, 0, 0.5);
+      box-shadow: inset 0 0 20px rgba(255, 176, 0, 0.1);
     }
     .vault-btn {
-      @apply border-2 border-[#ffb000] px-4 py-2 uppercase font-bold transition-all hover:bg-[#ffb000] hover:text-[#1a1a1a] active:translate-y-1 disabled:opacity-30;
+      @apply border-2 border-[#ffb000] px-4 py-2 uppercase font-bold transition-all hover:bg-[#ffb000] hover:text-[#111111] active:translate-y-0.5 disabled:opacity-20;
     }
-    /* CRT Scanline Effect */
+    /* CRT Scanline and Vignette */
     body::before {
       content: " ";
       display: block;
       position: fixed;
       top: 0; left: 0; bottom: 0; right: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
       z-index: 1000;
       background-size: 100% 3px, 3px 100%;
       pointer-events: none;
     }
-    /* Vignette */
     body::after {
       content: " ";
       display: block;
       position: fixed;
       top: 0; left: 0; bottom: 0; right: 0;
-      background: radial-gradient(circle, transparent 60%, black 120%);
+      background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.4) 150%);
       z-index: 1001;
       pointer-events: none;
     }
     .video-container {
       position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;
       border: 2px solid var(--vault-amber);
+      background: #000;
     }
-    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; filter: sepia(0.5) contrast(1.2); }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; filter: sepia(0.2) contrast(1.1); }
     
-    .terminal-scrollbar::-webkit-scrollbar { width: 8px; }
-    .terminal-scrollbar::-webkit-scrollbar-track { background: #000; }
+    .terminal-scrollbar::-webkit-scrollbar { width: 6px; }
+    .terminal-scrollbar::-webkit-scrollbar-track { background: #0a0a0a; }
     .terminal-scrollbar::-webkit-scrollbar-thumb { background: var(--vault-amber); }
   </style>
 <script type="importmap">
 {
   "imports": {
+    "react": "https://esm.sh/react@19.0.0",
+    "react-dom": "https://esm.sh/react-dom@19.0.0",
+    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3"
+    "react/": "https://esm.sh/react@^19.2.3/"
   }
 }
 </script>
 </head>
 <body>
   <div id="root"></div>
+  <!-- Manually included index script to ensure it boots on GitHub Pages -->
+  <script type="module" src="./index.tsx"></script>
 </body>
 </html>
