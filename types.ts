@@ -16,7 +16,8 @@ export enum StationId {
 
 export enum GameStage {
   FIELD_RESEARCH = 'field_research',
-  FINAL_SYNTHESIS = 'final_synthesis'
+  FINAL_SYNTHESIS = 'final_synthesis',
+  COMPLETE = 'complete'
 }
 
 export interface MCQ {
@@ -45,7 +46,6 @@ export interface Station {
   scaffoldType: ScaffoldType;
   x: number;
   y: number;
-  rewardTool?: string;
   neighbors: StationId[];
   lessonPlan: string;
   fuelCost?: number;
@@ -56,7 +56,7 @@ export interface Station {
 
 export interface LogEntry {
   t: number;
-  type: 'SYSTEM' | 'RESEARCH' | 'ANOMALY' | 'ACHIEVEMENT' | 'DICE';
+  type: 'SYSTEM' | 'RESEARCH' | 'ANOMALY' | 'ACHIEVEMENT' | 'DICE' | 'STORY' | 'SYNC';
   msg: string;
 }
 
@@ -65,19 +65,18 @@ export interface GameState {
   stage: GameStage;
   totalActiveTime: number;
   discoveredNodes: StationId[];
-  earnedTools: string[];
+  decryptedNodes: StationId[];
+  nodePrerequisites: Record<string, StationId>;
   currentStationId: StationId | null;
   lastPosition: { x: number, y: number };
   stationProgress: Record<string, {
     startTime: number;
     completedAt?: number;
-    failedAttempts: number;
     draft?: string;
     rollResult?: number;
-    extraData?: any;
   }>;
   xp: number;
-  clearanceLevel: number;
+  syncRate: number; // 0-100%
   integrity: number; 
   fuel: number;      
   rations: number;   
