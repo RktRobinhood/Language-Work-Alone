@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { GameState, StationId, LogEntry, GameStage } from './types';
 import { STATIONS, PUZZLES, UPGRADES } from './constants';
-import { SeededRNG, generateId } from './utils/rng';
+import { SeededRNG } from './utils/rng';
 import { sfx } from './utils/sfx';
 
 // Helper components
@@ -13,25 +13,28 @@ import MissionHub from './components/MissionHub';
 import SubmissionPack from './components/SubmissionPack';
 import TerminalUpgrades from './components/TerminalUpgrades';
 
-const STORAGE_KEY = 'tok_lang_lab_v5_final';
+const STORAGE_KEY = 'tok_lang_lab_clinical_v1';
 
 const App: React.FC = () => {
   const [state, setState] = useState<GameState | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'station' | 'submission' | 'upgrades'>('dashboard');
   const [showPuzzle, setShowPuzzle] = useState(false);
   const [currentPuzzle, setCurrentPuzzle] = useState(PUZZLES[0]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        setState(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setState(parsed);
       } catch (e) {
         createNewSession();
       }
     } else {
       createNewSession();
     }
+    setIsInitialized(true);
   }, []);
 
   const createNewSession = () => {
@@ -75,7 +78,7 @@ const App: React.FC = () => {
     setState(prev => {
       if (!prev) return null;
       const newLog: LogEntry = { t: Date.now(), type, payload };
-      return { ...prev, log: [...prev.log.slice(-15), newLog] };
+      return { ...prev, log: [...prev.log.slice(-10), newLog] };
     });
   }, []);
 
@@ -104,7 +107,7 @@ const App: React.FC = () => {
       };
     });
     
-    addLog('DATA_STABILIZED', { id: stationId });
+    addLog('NODE_SECURED', { id: stationId });
     setActiveTab('dashboard');
   };
 
@@ -121,40 +124,51 @@ const App: React.FC = () => {
     });
   };
 
-  if (!state) return null;
+  if (!isInitialized || !state) {
+    return (
+      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-12">
+        <div className="flex flex-col items-center gap-4">
+           <div className="w-12 h-12 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+           <p className="font-mono text-emerald-500 text-xs tracking-widest uppercase animate-pulse">Initializing Lab Interface...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <Layout state={state}>
-      {activeTab === 'dashboard' && (
-        <MissionHub 
-          state={state} 
-          onStartStation={() => { sfx.scan(); setActiveTab('station'); }} 
-          onShowUpgrades={() => { sfx.scan(); setActiveTab('upgrades'); }}
-          onShowSubmission={() => setActiveTab('submission')}
-        />
-      )}
-      
-      {activeTab === 'station' && state.currentStationIndex < state.route.length && (
-        <StationView 
-          station={STATIONS[state.route[state.currentStationIndex]]}
-          onComplete={handleCompleteStation}
-          onCancel={() => { sfx.error(); setActiveTab('dashboard'); }}
-          state={state}
-          onLog={addLog}
-        />
-      )}
+    <Layout state={state} onNav={setActiveTab} activeTab={activeTab}>
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        {activeTab === 'dashboard' && (
+          <MissionHub 
+            state={state} 
+            onStartStation={() => { sfx.scan(); setActiveTab('station'); }} 
+            onShowUpgrades={() => { sfx.scan(); setActiveTab('upgrades'); }}
+            onShowSubmission={() => { sfx.scan(); setActiveTab('submission'); }}
+          />
+        )}
+        
+        {activeTab === 'station' && state.currentStationIndex < state.route.length && (
+          <StationView 
+            station={STATIONS[state.route[state.currentStationIndex]]}
+            onComplete={handleCompleteStation}
+            onCancel={() => { sfx.error(); setActiveTab('dashboard'); }}
+            state={state}
+            onLog={addLog}
+          />
+        )}
 
-      {activeTab === 'upgrades' && (
-        <TerminalUpgrades 
-          state={state} 
-          onBuy={buyUpgrade} 
-          onBack={() => setActiveTab('dashboard')} 
-        />
-      )}
+        {activeTab === 'upgrades' && (
+          <TerminalUpgrades 
+            state={state} 
+            onBuy={buyUpgrade} 
+            onBack={() => { sfx.beep(300, 0.05); setActiveTab('dashboard'); }} 
+          />
+        )}
 
-      {activeTab === 'submission' && (
-        <SubmissionPack state={state} onBack={() => setActiveTab('dashboard')} />
-      )}
+        {activeTab === 'submission' && (
+          <SubmissionPack state={state} onBack={() => { sfx.beep(300, 0.05); setActiveTab('dashboard'); }} />
+        )}
+      </div>
 
       {showPuzzle && (
         <PuzzleModal 
@@ -165,18 +179,6 @@ const App: React.FC = () => {
           }}
         />
       )}
-
-      <nav className="fixed bottom-0 left-0 right-0 glass-panel border-t border-cyan-500/20 flex justify-around py-4 z-50 no-print">
-        <button onClick={() => { sfx.beep(440, 0.05); setActiveTab('dashboard'); }} className={`flex flex-col items-center gap-1 ${activeTab === 'dashboard' ? 'text-cyan-400' : 'text-slate-600'}`}>
-          <span className="text-xl">◬</span><span className="text-[8px] font-mono uppercase tracking-widest">Lab_Core</span>
-        </button>
-        <button onClick={() => { sfx.beep(440, 0.05); setActiveTab('upgrades'); }} className={`flex flex-col items-center gap-1 ${activeTab === 'upgrades' ? 'text-cyan-400' : 'text-slate-600'}`}>
-          <span className="text-xl">⚡</span><span className="text-[8px] font-mono uppercase tracking-widest">Upgrades</span>
-        </button>
-        <button onClick={() => { sfx.beep(440, 0.05); setActiveTab('submission'); }} className={`flex flex-col items-center gap-1 ${activeTab === 'submission' ? 'text-cyan-400' : 'text-slate-600'}`}>
-          <span className="text-xl">▤</span><span className="text-[8px] font-mono uppercase tracking-widest">Dossier</span>
-        </button>
-      </nav>
     </Layout>
   );
 };
